@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0f">
+<title>EstadísticaUDENAR</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--bg4:#1f1f28;--border:#2a2a38;--border2:#3a3a50;--text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;--acc:#6c63ff;--acc2:#8b84ff;--adim:rgba(108,99,255,0.15);--grn:#22c984;--gdim:rgba(34,201,132,0.12);--red:#ff5f7e;--rdim:rgba(255,95,126,0.12);--amb:#ffb347;--adm2:rgba(255,179,71,0.12);--cyn:#38d9f5;--fns:'Syne',sans-serif;--fnm:'DM Mono',monospace;--nav:64px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--fnm)}
+body{display:flex;flex-direction:column}
+.hdr{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;z-index:10}
+.hdr-logo{font-family:var(--fns);font-weight:800;font-size:17px;letter-spacing:-0.5px}.hdr-logo span{color:var(--acc)}
+.hdr-sub{font-size:10px;color:var(--text3);letter-spacing:0.5px}
+.hdr-badge{background:var(--adim);color:var(--acc2);font-size:10px;padding:3px 8px;border-radius:20px;border:1px solid var(--acc)}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--nav)+16px)}
+.main::-webkit-scrollbar{width:3px}.main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.bnav{height:var(--nav);display:flex;align-items:center;background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0;padding:0 4px;gap:2px}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px;border-radius:8px;cursor:pointer;border:none;background:transparent;color:var(--text3);font-family:var(--fnm);transition:all .2s}
+.ni.on{color:var(--acc2);background:var(--adim)}.ni:hover{color:var(--acc2);background:var(--adim)}
+.ni svg{width:20px;height:20px;stroke-width:1.8}.ni-lbl{font-size:9px;font-weight:500}
+.sec{display:none;padding:12px 14px}.sec.on{display:block}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px}
+.ch{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.ci{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ci.p{background:var(--adim);color:var(--acc2)}.ci.g{background:var(--gdim);color:var(--grn)}.ci.a{background:var(--adm2);color:var(--amb)}.ci.c{background:rgba(56,217,245,0.1);color:var(--cyn)}
+.ct{font-family:var(--fns);font-size:13px;font-weight:700;color:var(--text)}.cs{font-size:10px;color:var(--text3);margin-top:1px}
+.fml{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:11px;color:var(--text2);line-height:1.8}.fml .hi{color:var(--acc2)}
+.tabs{display:flex;gap:4px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text3);font-family:var(--fnm);transition:all .2s}
+.tab.on{background:var(--adim);border-color:var(--acc);color:var(--acc2)}.tab:hover{border-color:var(--acc);color:var(--acc2)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.fld{display:flex;flex-direction:column;gap:4px}.fld label{font-size:10px;color:var(--text3);letter-spacing:0.5px;font-weight:500}
+input,select{width:100%;padding:9px 10px;font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--fnm);outline:none;-webkit-appearance:none;appearance:none}
+input:focus,select:focus{border-color:var(--acc)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236c63ff'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.cbtn{width:100%;margin-top:10px;padding:12px;background:var(--acc);border:none;border-radius:8px;color:#fff;font-family:var(--fns);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.cbtn:active,.cbtn:hover{background:var(--acc2)}
+.res{margin-top:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px}
+.rt{font-size:10px;color:var(--text3);letter-spacing:0.8px;font-weight:500;margin-bottom:8px}
+.rr{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px}
+.rr:last-of-type{border-bottom:none}.rl{color:var(--text2)}.rv{font-weight:500;color:var(--text)}
+.vrd{padding:10px 12px;border-radius:8px;font-size:12px;font-weight:600;margin-top:8px;line-height:1.5;font-family:var(--fns)}
+.vrd.r{background:var(--rdim);color:var(--red);border:1px solid rgba(255,95,126,0.3)}
+.vrd.a{background:var(--gdim);color:var(--grn);border:1px solid rgba(34,201,132,0.3)}
+.vrd.ic{background:var(--adim);color:var(--acc2);border:1px solid rgba(108,99,255,0.3)}
+.stp{display:flex;flex-direction:column}
+.si{padding:10px 0 10px 32px;position:relative;border-bottom:1px solid var(--border)}
+.si:last-child{border-bottom:none}
+.sn{position:absolute;left:0;top:10px;width:22px;height:22px;border-radius:50%;background:var(--adim);border:1px solid var(--acc);color:var(--acc2);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.stit{font-size:11px;font-weight:700;color:var(--acc2);font-family:var(--fns);margin-bottom:3px}
+.sbdy{font-size:11px;color:var(--text2);line-height:1.6}
+.hero{padding:20px 0 16px;text-align:center}
+.htit{font-family:var(--fns);font-size:26px;font-weight:800;color:var(--text);line-height:1.1;letter-spacing:-1px}.htit span{color:var(--acc)}
+.hsub{font-size:11px;color:var(--text3);margin-top:6px}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.mc{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:6px}
+.mc:hover,.mc:active{transform:scale(0.97);background:var(--bg3)}
+.mc.p{border-color:rgba(108,99,255,0.3)}.mc.g{border-color:rgba(34,201,132,0.3)}.mc.a{border-color:rgba(255,179,71,0.3)}.mc.c{border-color:rgba(56,217,245,0.3)}
+.micon{font-size:22px}.mtit{font-family:var(--fns);font-size:12px;font-weight:700;color:var(--text)}.msub{font-size:10px;color:var(--text3)}
+.thc{background:var(--bg2);border:1px solid var(--border);border-radius:14px;margin-bottom:8px;overflow:hidden}
+.thh{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.thh:hover{background:var(--bg3)}.thtit{font-family:var(--fns);font-size:13px;font-weight:700;color:var(--text)}
+.tharr{color:var(--text3);font-size:14px;transition:transform .2s}.thh.op .tharr{transform:rotate(180deg)}
+.thb{display:none;padding:0 14px 14px;border-top:1px solid var(--border)}.thb.op{display:block}
+.tcase{background:var(--bg3);border-radius:8px;padding:10px;margin-top:8px;border-left:3px solid var(--acc)}
+.tctit{font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px;font-family:var(--fns)}.tcbdy{font-size:11px;color:var(--text2);line-height:1.7}
+.abox{background:var(--bg4);border-radius:8px;padding:10px;margin-top:8px}
+.atit{font-size:10px;color:var(--amb);font-weight:700;letter-spacing:0.5px;margin-bottom:6px}.arow{font-size:11px;color:var(--text2);padding:3px 0;line-height:1.5}.arow strong{color:var(--text)}
+.twrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--border)}
+.stbl{width:100%;border-collapse:collapse;font-size:11px;font-family:var(--fnm)}
+.stbl th{background:var(--bg3);color:var(--acc2);padding:7px 6px;text-align:center;font-weight:500;font-size:10px;border-bottom:1px solid var(--border);white-space:nowrap}
+.stbl td{padding:6px;text-align:center;border-bottom:1px solid var(--border);color:var(--text2)}
+.stbl tr:hover td{background:var(--bg3);color:var(--text)}
+.stbl td:first-child{color:var(--acc2);font-weight:500;background:var(--bg3)}
+.ec{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px}
+.ebdg{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;margin-bottom:8px;font-family:var(--fns)}
+.ebdg.ic{background:var(--adim);color:var(--acc2);border:1px solid var(--acc)}.ebdg.ph{background:var(--gdim);color:var(--grn);border:1px solid var(--grn)}
+.etit{font-family:var(--fns);font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}
+.etxt{font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:10px}
+.esbtn{padding:8px 14px;background:transparent;border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:11px;cursor:pointer;font-family:var(--fnm)}
+.esbtn:hover{background:var(--bg3);color:var(--text)}
+.esol{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}.esol.op{display:block}
+.ss{padding:6px 0;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border);line-height:1.6}.ss strong{color:var(--acc2)}.ss:last-child{border-bottom:none}
+.gwrap{margin-top:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:12px}
+.gtit{font-size:10px;color:var(--text3);letter-spacing:0.6px;font-weight:600;margin-bottom:8px}
+.gcnv{position:relative;width:100%;height:200px}
+.gleg{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:10px;color:var(--text3)}
+.gleg span{display:flex;align-items:center;gap:4px}.gleg i{display:inline-block;width:12px;height:3px;border-radius:2px}
+/* IA section */
+.mode-btn{flex:1;padding:8px 6px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--fnm);transition:all .2s}
+.mode-btn.on{background:var(--adim);border:1px solid var(--acc);color:var(--acc2)}
+.mode-btn.off{background:transparent;border:1px solid var(--border);color:var(--text3)}
+.drop-zone{border:2px dashed var(--border2);border-radius:10px;padding:28px 16px;text-align:center;cursor:pointer;transition:all .2s}
+.drop-zone:hover{border-color:var(--acc)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--acc);border-radius:50%;margin:0 auto 12px;animation:spin 0.8s linear infinite}
+.ia-step{background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:8px;border-left:3px solid var(--acc)}
+.ia-st{font-size:11px;font-weight:700;color:var(--acc2);font-family:var(--fns);margin-bottom:4px}
+.ia-sb{font-size:11px;color:var(--text2);line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.ia-fml{background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;font-family:var(--fnm);font-size:11px;color:var(--cyn);margin:4px 0;white-space:pre-wrap}
+.ia-ok{background:var(--gdim);border:1px solid rgba(34,201,132,0.3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--grn);font-weight:600;margin-top:8px;line-height:1.5}
+.ia-ko{background:var(--rdim);border:1px solid rgba(255,95,126,0.3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--red);font-weight:600;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div><div class="hdr-logo">Estadística<span>UDENAR</span></div><div class="hdr-sub">Licenciatura en Informática</div></div>
+  <div class="hdr-badge">v2.0</div>
+</div>
+<div class="main" id="main">
+
+<!-- HOME -->
+<div class="sec on" id="sec-home">
+  <div id="inst-banner" style="display:none;background:var(--adim);border:1px solid var(--acc);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px">
+    <div style="flex:1;font-size:11px;color:var(--acc2)">Instala esta app en tu pantalla de inicio</div>
+    <button onclick="installApp()" style="background:var(--acc);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">Instalar</button>
+  </div>
+  <div class="hero">
+    <div class="htit">Tu calculadora<br><span>estadística</span></div>
+    <div class="hsub">Intervalos de confianza · Pruebas de hipótesis · Tablas</div>
+  </div>
+  <div class="mgrid">
+    <div class="mc p" id="btn-ic"><div class="micon">📊</div><div class="mtit">Intervalos de confianza</div><div class="msub">4 tipos · Media, Prop, Dif</div></div>
+    <div class="mc g" id="btn-ph"><div class="micon">🧪</div><div class="mtit">Pruebas de hipótesis</div><div class="msub">5 pasos · z y t · 4 tipos</div></div>
+    <div class="mc a" id="btn-teo"><div class="micon">📖</div><div class="mtit">Teoría y fórmulas</div><div class="msub">Todos los casos UDENAR</div></div>
+    <div class="mc c" id="btn-tbl"><div class="micon">📋</div><div class="mtit">Tablas estadísticas</div><div class="msub">t-Student · z · Chi²</div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ci p"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div><div class="ct">Ejercicios y Resolver con IA</div><div class="cs">Fotos, texto o ejemplos del profesor</div></div></div>
+    <div style="display:flex;gap:8px">
+      <button id="btn-ej2" class="cbtn" style="flex:1;background:var(--bg3);color:var(--text);border:1px solid var(--border)">Ejercicios</button>
+      <button id="btn-ia2" class="cbtn" style="flex:1">⚡ IA</button>
+    </div>
+  </div>
+</div>
+
+<!-- IC -->
+<div class="sec" id="sec-ic">
+  <div class="tabs">
+    <button class="tab on" id="ict-media">IC Media</button>
+    <button class="tab" id="ict-prop">IC Proporción</button>
+    <button class="tab" id="ict-difmed">IC Dif. Medias</button>
+    <button class="tab" id="ict-difprop">IC Dif. Props</button>
+  </div>
+  <div id="ic-media">
+    <div class="card">
+      <div class="ch"><div class="ci p"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div><div><div class="ct">IC para la media (μ)</div><div class="cs">3 casos según σ y tamaño de muestra</div></div></div>
+      <div class="fml"><span class="hi">σ conocida:</span> x̄ ± z·(σ/√n)<br><span class="hi">σ desc., n&gt;30:</span> x̄ ± z·(s/√n)<br><span class="hi">σ desc., n≤30:</span> x̄ ± t·(s/√n), gl=n−1</div>
+      <div class="g2">
+        <div class="fld"><label>MEDIA (x̄)</label><input id="icm-xb" type="number" value="5.275" step="any"></div>
+        <div class="fld"><label>DESV. ESTÁNDAR (s o σ)</label><input id="icm-sd" type="number" value="0.9528" step="any"></div>
+        <div class="fld"><label>MUESTRA (n)</label><input id="icm-n" type="number" value="8" step="1"></div>
+        <div class="fld"><label>CONFIANZA</label><select id="icm-cf"><option value="0.90">90%</option><option value="0.95" selected>95%</option><option value="0.99">99%</option></select></div>
+        <div class="fld"><label>σ POBLACIONAL</label><select id="icm-sig"><option value="no" selected>Desconocida</option><option value="yes">Conocida</option></select></div>
+      </div>
+      <button class="cbtn" id="btn-icm">Calcular IC →</button>
+      <div id="icm-out"></div>
+    </div>
+  </div>
+  <div id="ic-prop" style="display:none">
+    <div class="card">
+      <div class="ch"><div class="ci g"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></div><div><div class="ct">IC para la proporción (P)</div><div class="cs">p̂ ± z·√(p̂·q̂/n)</div></div></div>
+      <div class="g3">
+        <div class="fld"><label>ÉXITOS (x)</label><input id="icp-x" type="number" value="19" step="1"></div>
+        <div class="fld"><label>MUESTRA (n)</label><input id="icp-n" type="number" value="30" step="1"></div>
+        <div class="fld"><label>CONFIANZA</label><select id="icp-cf"><option value="0.90">90%</option><option value="0.95" selected>95%</option><option value="0.99">99%</option></select></div>
+      </div>
+      <button class="cbtn" id="btn-icp">Calcular IC →</button>
+      <div id="icp-out"></div>
+    </div>
+  </div>
+  <div id="ic-difmed" style="display:none">
+    <div class="card">
+      <div class="ch"><div class="ci a"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 7h8M8 12h8M8 17h4"/></svg></div><div><div class="ct">IC para μ₁−μ₂</div><div class="cs">4 casos según n y varianzas</div></div></div>
+      <div class="fld" style="margin-bottom:8px"><label>CASO</label>
+        <select id="icdm-caso"><option value="1">Caso 1: σ₁,σ₂ conocidas (z)</option><option value="2">Caso 2: σ desc., n₁+n₂&gt;30 (z)</option><option value="3" selected>Caso 3: n≤30, var. iguales (t, Sp)</option><option value="4">Caso 4: n≤30, var. distintas (t, Welch)</option></select>
+      </div>
+      <div class="g2">
+        <div class="fld"><label>x̄₁</label><input id="icdm-x1" type="number" value="24" step="any"></div>
+        <div class="fld"><label>x̄₂</label><input id="icdm-x2" type="number" value="27" step="any"></div>
+        <div class="fld"><label>s₁ (o σ₁)</label><input id="icdm-s1" type="number" value="1.58114" step="any"></div>
+        <div class="fld"><label>s₂ (o σ₂)</label><input id="icdm-s2" type="number" value="1.58114" step="any"></div>
+        <div class="fld"><label>n₁</label><input id="icdm-n1" type="number" value="5" step="1"></div>
+        <div class="fld"><label>n₂</label><input id="icdm-n2" type="number" value="5" step="1"></div>
+        <div class="fld"><label>CONFIANZA</label><select id="icdm-cf"><option value="0.90">90%</option><option value="0.95" selected>95%</option><option value="0.99">99%</option></select></div>
+      </div>
+      <button class="cbtn" id="btn-icdm">Calcular IC →</button>
+      <div id="icdm-out"></div>
+    </div>
+  </div>
+  <div id="ic-difprop" style="display:none">
+    <div class="card">
+      <div class="ch"><div class="ci c"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="9" r="4"/><circle cx="15" cy="15" r="4"/></svg></div><div><div class="ct">IC para P₁−P₂</div><div class="cs">Proporciones independientes</div></div></div>
+      <div class="g2">
+        <div class="fld"><label>x₁</label><input id="icdp-x1" type="number" value="60" step="1"></div>
+        <div class="fld"><label>n₁</label><input id="icdp-n1" type="number" value="120" step="1"></div>
+        <div class="fld"><label>x₂</label><input id="icdp-x2" type="number" value="48" step="1"></div>
+        <div class="fld"><label>n₂</label><input id="icdp-n2" type="number" value="80" step="1"></div>
+        <div class="fld"><label>CONFIANZA</label><select id="icdp-cf"><option value="0.90">90%</option><option value="0.95" selected>95%</option><option value="0.99">99%</option></select></div>
+      </div>
+      <button class="cbtn" id="btn-icdp">Calcular IC →</button>
+      <div id="icdp-out"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PH -->
+<div class="sec" id="sec-ph">
+  <div class="tabs">
+    <button class="tab on" id="pht-media">PH Media</button>
+    <button class="tab" id="pht-prop">PH Proporción</button>
+    <button class="tab" id="pht-difmed">PH Dif. Medias</button>
+    <button class="tab" id="pht-difprop">PH Dif. Props</button>
+  </div>
+  <div id="ph-media">
+    <div class="card">
+      <div class="ch"><div class="ci p"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div><div class="ct">PH para μ · 5 pasos</div><div class="cs">H₀: μ=μ₀ vs Hₐ</div></div></div>
+      <div class="g2">
+        <div class="fld"><label>x̄</label><input id="phm-xb" type="number" value="5.275" step="any"></div>
+        <div class="fld"><label>μ₀ (HIPÓTESIS)</label><input id="phm-mu" type="number" value="4.2" step="any"></div>
+        <div class="fld"><label>s (o σ)</label><input id="phm-sd" type="number" value="0.9528" step="any"></div>
+        <div class="fld"><label>n</label><input id="phm-n" type="number" value="8" step="1"></div>
+        <div class="fld"><label>α</label><select id="phm-al"><option value="0.10">0.10</option><option value="0.05" selected>0.05</option><option value="0.01">0.01</option></select></div>
+        <div class="fld"><label>HIPÓTESIS ALTERNA</label><select id="phm-tail"><option value="two">≠ bilateral</option><option value="right">&gt; cola der.</option><option value="left">&lt; cola izq.</option></select></div>
+        <div class="fld"><label>σ POBLACIONAL</label><select id="phm-sig"><option value="no" selected>Desconocida</option><option value="yes">Conocida</option></select></div>
+      </div>
+      <button class="cbtn" id="btn-phm">Resolver 5 pasos →</button>
+      <div id="phm-out"></div>
+    </div>
+  </div>
+  <div id="ph-prop" style="display:none">
+    <div class="card">
+      <div class="ch"><div class="ci g"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div><div class="ct">PH para P · 5 pasos</div><div class="cs">H₀: P=P₀ vs Hₐ</div></div></div>
+      <div class="g2">
+        <div class="fld"><label>ÉXITOS (x)</label><input id="php-x" type="number" value="19" step="1"></div>
+        <div class="fld"><label>n</label><input id="php-n" type="number" value="30" step="1"></div>
+        <div class="fld"><label>P₀</label><input id="php-p0" type="number" value="0.85" step="0.01"></div>
+        <div class="fld"><label>α</label><select id="php-al"><option value="0.10">0.10</option><option value="0.05" selected>0.05</option><option value="0.01">0.01</option></select></div>
+        <div class="fld"><label>HIPÓTESIS ALTERNA</label><select id="php-tail"><option value="two">≠ bilateral</option><option value="right">&gt; cola der.</option><option value="left">&lt; cola izq.</option></select></div>
+      </div>
+      <button class="cbtn" id="btn-php">Resolver 5 pasos →</button>
+      <div id="php-out"></div>
+    </div>
+  </div>
+  <div id="ph-difmed" style="display:none">
+    <div class="card">
+      <div class="ch"><div class="ci a"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div><div class="ct">PH para μ₁−μ₂ · 5 pasos</div><div class="cs">4 casos</div></div></div>
+      <div class="fld" style="margin-bottom:8px"><label>CASO</label>
+        <select id="phdm-caso"><option value="1">Caso 1: σ conocidas (z)</option><option value="2">Caso 2: n₁+n₂&gt;30 (z)</option><option value="3" selected>Caso 3: n≤30, var. iguales (t-Sp)</option><option value="4">Caso 4: n≤30, var. distintas (t-Welch)</option></select>
+      </div>
+      <div class="g2">
+        <div class="fld"><label>x̄₁</label><input id="phdm-x1" type="number" value="24" step="any"></div>
+        <div class="fld"><label>x̄₂</label><input id="phdm-x2" type="number" value="27" step="any"></div>
+        <div class="fld"><label>s₁</label><input id="phdm-s1" type="number" value="1.58114" step="any"></div>
+        <div class="fld"><label>s₂</label><input id="phdm-s2" type="number" value="1.58114" step="any"></div>
+        <div class="fld"><label>n₁</label><input id="phdm-n1" type="number" value="5" step="1"></div>
+        <div class="fld"><label>n₂</label><input id="phdm-n2" type="number" value="5" step="1"></div>
+        <div class="fld"><label>δ (gen. 0)</label><input id="phdm-delta" type="number" value="0" step="any"></div>
+        <div class="fld"><label>α</label><select id="phdm-al"><option value="0.10">0.10</option><option value="0.05" selected>0.05</option><option value="0.01">0.01</option></select></div>
+        <div class="fld"><label>HIPÓTESIS ALTERNA</label><select id="phdm-tail"><option value="two">≠ bilateral</option><option value="right">&gt; cola der.</option><option value="left">&lt; cola izq.</option></select></div>
+      </div>
+      <button class="cbtn" id="btn-phdm">Resolver 5 pasos →</button>
+      <div id="phdm-out"></div>
+    </div>
+  </div>
+  <div id="ph-difprop" style="display:none">
+    <div class="card">
+      <div class="ch"><div class="ci c"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div><div class="ct">PH para P₁−P₂ · 5 pasos</div><div class="cs">p̂ combinada</div></div></div>
+      <div class="g2">
+        <div class="fld"><label>x₁</label><input id="phdp-x1" type="number" value="60" step="1"></div>
+        <div class="fld"><label>n₁</label><input id="phdp-n1" type="number" value="120" step="1"></div>
+        <div class="fld"><label>x₂</label><input id="phdp-x2" type="number" value="48" step="1"></div>
+        <div class="fld"><label>n₂</label><input id="phdp-n2" type="number" value="80" step="1"></div>
+        <div class="fld"><label>δ</label><input id="phdp-delta" type="number" value="0" step="any"></div>
+        <div class="fld"><label>α</label><select id="phdp-al"><option value="0.10">0.10</option><option value="0.05" selected>0.05</option><option value="0.01">0.01</option></select></div>
+        <div class="fld"><label>HIPÓTESIS ALTERNA</label><select id="phdp-tail"><option value="two">≠ bilateral</option><option value="right">&gt; cola der.</option><option value="left">&lt; cola izq.</option></select></div>
+      </div>
+      <button class="cbtn" id="btn-phdp">Resolver 5 pasos →</button>
+      <div id="phdp-out"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TEORIA -->
+<div class="sec" id="sec-teoria">
+  <div id="tc1" class="thc"><div class="thh" id="thh1"><div class="thtit">📊 IC para la media (μ)</div><span class="tharr">▾</span></div>
+    <div class="thb" id="thb1">
+      <div class="tcase"><div class="tctit">Caso 1 — σ conocida (z)</div><div class="tcbdy">x̄ ± z · (σ/√n) — n cualquiera</div></div>
+      <div class="tcase"><div class="tctit">Caso 2 — σ desconocida, n&gt;30 (z)</div><div class="tcbdy">x̄ ± z · (s/√n)</div></div>
+      <div class="tcase"><div class="tctit">Caso 3 — σ desconocida, n≤30 (t)</div><div class="tcbdy">x̄ ± t · (s/√n) — gl = n − 1</div></div>
+    </div>
+  </div>
+  <div id="tc2" class="thc"><div class="thh" id="thh2"><div class="thtit">📈 IC para la proporción (P)</div><span class="tharr">▾</span></div>
+    <div class="thb" id="thb2">
+      <div class="tcase"><div class="tctit">Fórmula única (z)</div><div class="tcbdy">p̂ ± z · √(p̂·q̂/n) — q̂ = 1 − p̂</div></div>
+      <div class="abox"><div class="atit">ANÁLISIS [A, B]</div>
+        <div class="arow">Si <strong>A&lt;0 y B&lt;0</strong> → P₁ &lt; P₂</div>
+        <div class="arow">Si <strong>A&gt;0 y B&gt;0</strong> → P₁ &gt; P₂</div>
+        <div class="arow">Si <strong>A&lt;0 y B&gt;0</strong> → NO hay diferencia</div>
+      </div>
+    </div>
+  </div>
+  <div id="tc3" class="thc"><div class="thh" id="thh3"><div class="thtit">🔀 IC para μ₁−μ₂ (4 casos)</div><span class="tharr">▾</span></div>
+    <div class="thb" id="thb3">
+      <div class="tcase"><div class="tctit">Caso 1 — σ₁,σ₂ conocidas (z)</div><div class="tcbdy">(x̄₁−x̄₂) ± z·√(σ₁²/n₁ + σ₂²/n₂)</div></div>
+      <div class="tcase"><div class="tctit">Caso 2 — n₁+n₂&gt;30 (z)</div><div class="tcbdy">(x̄₁−x̄₂) ± z·√(s₁²/n₁ + s₂²/n₂)</div></div>
+      <div class="tcase"><div class="tctit">Caso 3 — n≤30, σ₁²=σ₂² (t, Sp)</div><div class="tcbdy">(x̄₁−x̄₂) ± t·Sp·√(1/n₁+1/n₂)<br>Sp = √[(n₁−1)s₁²+(n₂−1)s₂²]/(n₁+n₂−2)</div></div>
+      <div class="tcase"><div class="tctit">Caso 4 — n≤30, σ₁²≠σ₂² (t, Welch)</div><div class="tcbdy">(x̄₁−x̄₂) ± t·√(s₁²/n₁+s₂²/n₂) — gl Welch</div></div>
+      <div class="abox"><div class="atit">ANÁLISIS [A, B]</div>
+        <div class="arow">A&lt;0 y B&lt;0 → <strong>μ₁ &lt; μ₂</strong></div>
+        <div class="arow">A&gt;0 y B&gt;0 → <strong>μ₁ &gt; μ₂</strong></div>
+        <div class="arow">A&lt;0 y B&gt;0 → <strong>NO hay diferencia</strong></div>
+      </div>
+    </div>
+  </div>
+  <div id="tc4" class="thc"><div class="thh" id="thh4"><div class="thtit">🧪 5 pasos para prueba de hipótesis</div><span class="tharr">▾</span></div>
+    <div class="thb" id="thb4">
+      <div class="tcase" style="border-color:var(--grn)"><div class="tctit" style="color:var(--grn)">Paso 1 — Hipótesis</div><div class="tcbdy">H₀: = (nula) · Hₐ: ≠/&gt;/&lt; (investigador)</div></div>
+      <div class="tcase" style="border-color:var(--amb)"><div class="tctit" style="color:var(--amb)">Paso 2 — Distribución</div><div class="tcbdy">z Normal · t-Student · Chi² · F</div></div>
+      <div class="tcase" style="border-color:var(--cyn)"><div class="tctit" style="color:var(--cyn)">Paso 3 — α y valor crítico</div><div class="tcbdy">Graficar zona de rechazo/aceptación</div></div>
+      <div class="tcase"><div class="tctit">Paso 4 — Estadística de prueba</div><div class="tcbdy">Calcular Zc, tc con datos de la muestra</div></div>
+      <div class="tcase" style="border-color:var(--red)"><div class="tctit" style="color:var(--red)">Paso 5 — Decisión</div><div class="tcbdy">Ubicar estadístico en la gráfica<br>Si p-valor &lt; α → rechazar H₀</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TABLAS -->
+<div class="sec" id="sec-tablas">
+  <div class="tabs">
+    <button class="tab on" id="tblt-z">z Normal</button>
+    <button class="tab" id="tblt-t">t-Student</button>
+    <button class="tab" id="tblt-chi">Chi²</button>
+  </div>
+  <div id="tbl-z">
+    <div class="card">
+      <div style="font-family:var(--fns);font-size:13px;font-weight:700;margin-bottom:6px">Valores críticos z</div>
+      <div class="twrap"><table class="stbl"><thead><tr><th>Confianza</th><th>α</th><th>z bilateral</th><th>z cola</th></tr></thead>
+      <tbody><tr><td>90%</td><td>0.10</td><td>±1.6449</td><td>1.2816</td></tr><tr><td>95%</td><td>0.05</td><td>±1.9600</td><td>1.6449</td></tr><tr><td>99%</td><td>0.01</td><td>±2.5758</td><td>2.3263</td></tr></tbody></table></div>
+    </div>
+  </div>
+  <div id="tbl-t" style="display:none"><div class="card"><div style="font-family:var(--fns);font-size:13px;font-weight:700;margin-bottom:6px">t-Student</div><div class="twrap"><table class="stbl" id="ttbl"></table></div></div></div>
+  <div id="tbl-chi" style="display:none"><div class="card"><div style="font-family:var(--fns);font-size:13px;font-weight:700;margin-bottom:6px">Chi-cuadrado</div><div class="twrap"><table class="stbl" id="chitbl"></table></div></div></div>
+</div>
+
+<!-- EJERCICIOS -->
+<div class="sec" id="sec-ejercicios">
+  <div class="ec"><div class="ebdg ic">IC · Diferencia de medias</div><div class="etit">Nicotina en cigarrillos</div><div class="etxt">Marca 1: {24,26,25,22,23} · Marca 2: {27,28,25,29,26}. IC al 95%, varianzas iguales.</div>
+    <button class="esbtn" id="ejs1btn">Ver solución</button>
+    <div class="esol" id="ejs1">
+      <div class="ss"><strong>Datos:</strong> x̄₁=24, x̄₂=27, s₁=s₂=1.58114, n₁=n₂=5</div>
+      <div class="ss"><strong>Caso 3:</strong> σ desconocidas, n=10≤30, varianzas iguales → t, gl=8</div>
+      <div class="ss"><strong>t₀.₀₂₅,₈ = 2.30600</strong></div>
+      <div class="ss"><strong>Sp = 1.58114</strong></div>
+      <div class="ss"><strong>IC:</strong> (24−27) ± 2.306·1.581·√(2/5) = −3 ± 2.306</div>
+      <div class="ss"><strong>A=−5.306, B=−0.694 → A&lt;0 y B&lt;0 → Marca 1 tiene menos nicotina</strong></div>
+    </div>
+  </div>
+  <div class="ec"><div class="ebdg ph">PH · Media</div><div class="etit">Salario trabajadores Pasto</div><div class="etxt">El alcalde afirma μ&gt;4.2 sm. Muestra n=8: {3.8,5.7,6.2,4.3,5.8,6.4,4.5,5.5}. α=5%.</div>
+    <button class="esbtn" id="ejs2btn">Ver solución</button>
+    <div class="esol" id="ejs2">
+      <div class="ss"><strong>Paso 1:</strong> H₀: μ=4.2 · Hₐ: μ&gt;4.2 (cola derecha)</div>
+      <div class="ss"><strong>Paso 2:</strong> t-Student, gl=7</div>
+      <div class="ss"><strong>Paso 3:</strong> tcrit = 1.89458</div>
+      <div class="ss"><strong>Paso 4:</strong> tc = (5.275−4.2)/(0.9528/√8) = 3.1909</div>
+      <div class="ss"><strong>Paso 5:</strong> 3.19 &gt; 1.895 → RECHAZAR H₀ → El alcalde tiene razón</div>
+    </div>
+  </div>
+  <div class="ec"><div class="ebdg ph">PH · Proporción</div><div class="etit">Internet en la Udenar</div><div class="etxt">Rector afirma P=85%. Muestra n=30, x=19 responden sí. Confianza 90%.</div>
+    <button class="esbtn" id="ejs3btn">Ver solución</button>
+    <div class="esol" id="ejs3">
+      <div class="ss"><strong>Paso 1:</strong> H₀: P=0.85 · Hₐ: P≠0.85</div>
+      <div class="ss"><strong>Paso 2:</strong> Normal z</div>
+      <div class="ss"><strong>Paso 3:</strong> zcrit = ±1.6449</div>
+      <div class="ss"><strong>Paso 4:</strong> zc = (0.6333−0.85)/√(0.6333·0.3667/30) = −4.022</div>
+      <div class="ss"><strong>Paso 5:</strong> |−4.022| &gt; 1.645 → RECHAZAR H₀ → Rector NO tiene razón</div>
+    </div>
+  </div>
+</div>
+
+<!-- IA -->
+<div class="sec" id="sec-ia">
+  <div class="card" style="border-color:rgba(108,99,255,0.4)">
+    <div class="ch"><div class="ci p"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg></div><div><div class="ct">Resolver con IA</div><div class="cs">Foto, imagen o texto del problema</div></div></div>
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <button class="mode-btn on" id="mb-cam">Camara</button>
+      <button class="mode-btn off" id="mb-img">Galeria</button>
+      <button class="mode-btn off" id="mb-txt">Texto</button>
+    </div>
+    <div id="ia-cam">
+      <div id="cam-pw" style="display:none;margin-bottom:8px;border-radius:8px;overflow:hidden;border:1px solid var(--border)"><img id="cam-pi" style="width:100%;display:block;max-height:220px;object-fit:contain;background:#000"></div>
+      <div class="drop-zone" id="cam-dz"><div style="font-size:28px;margin-bottom:6px">📸</div><div style="font-size:12px;color:var(--text2);font-weight:500">Toca para tomar foto o elegir imagen</div><div style="font-size:10px;color:var(--text3);margin-top:4px">El problema puede estar escrito a mano o impreso</div></div>
+      <input id="cam-inp" type="file" accept="image/*" capture="environment" style="display:none">
+    </div>
+    <div id="ia-img" style="display:none">
+      <div id="img-pw" style="display:none;margin-bottom:8px;border-radius:8px;overflow:hidden;border:1px solid var(--border)"><img id="img-pi" style="width:100%;display:block;max-height:220px;object-fit:contain;background:#000"></div>
+      <div class="drop-zone" id="img-dz"><div style="font-size:28px;margin-bottom:6px">🖼</div><div style="font-size:12px;color:var(--text2);font-weight:500">Seleccionar de la galeria</div></div>
+      <input id="img-inp" type="file" accept="image/*" style="display:none">
+    </div>
+    <div id="ia-txt" style="display:none">
+      <textarea id="txt-inp" placeholder="Escribe o pega el problema aqui..." style="width:100%;height:120px;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:var(--fnm);resize:none;outline:none;line-height:1.6"></textarea>
+    </div>
+    <div style="margin-top:10px">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:5px;letter-spacing:0.5px">CONTEXTO DEL TEMA</div>
+      <select id="ia-ctx">
+        <option value="general">Detectar automaticamente</option>
+        <option value="ic-media">IC para la media</option>
+        <option value="ic-prop">IC para proporciones</option>
+        <option value="ic-difmed">IC diferencia de medias</option>
+        <option value="ph-media">PH para la media</option>
+        <option value="ph-prop">PH para proporcion</option>
+        <option value="ph-difmed">PH diferencia de medias</option>
+      </select>
+    </div>
+    <button class="cbtn" id="ia-btn">Analizar y resolver con IA</button>
+    <div id="ia-load" style="display:none;text-align:center;padding:24px"><div class="spinner"></div><div id="ia-stat" style="font-size:12px;color:var(--text2)">Leyendo el problema...</div></div>
+    <div id="ia-out"></div>
+  </div>
+</div>
+
+</div>
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="ni on" id="nav-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="ni-lbl">Inicio</span></button>
+  <button class="ni" id="nav-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg><span class="ni-lbl">IC</span></button>
+  <button class="ni" id="nav-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg><span class="ni-lbl">PH</span></button>
+  <button class="ni" id="nav-teoria"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><span class="ni-lbl">Teoria</span></button>
+  <button class="ni" id="nav-tablas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18"/></svg><span class="ni-lbl">Tablas</span></button>
+  <button class="ni" id="nav-ejercicios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14 2z"/><polyline points="14 2 14 8 20 8"/></svg><span class="ni-lbl">Ejercicios</span></button>
+  <button class="ni" id="nav-ia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><span class="ni-lbl">IA</span></button>
+</nav>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ===== NAVIGATION =====
+var sections = ['home','ic','ph','teoria','tablas','ejercicios','ia'];
+function showSec(id) {
+  sections.forEach(function(s) {
+    var sec = document.getElementById('sec-'+s);
+    var nav = document.getElementById('nav-'+s);
+    if (sec) sec.classList.toggle('on', s===id);
+    if (nav) nav.classList.toggle('on', s===id);
+  });
+  document.getElementById('main').scrollTop = 0;
+}
+// Nav buttons
+document.getElementById('nav-home').addEventListener('click', function(){ showSec('home'); });
+document.getElementById('nav-ic').addEventListener('click', function(){ showSec('ic'); });
+document.getElementById('nav-ph').addEventListener('click', function(){ showSec('ph'); });
+document.getElementById('nav-teoria').addEventListener('click', function(){ showSec('teoria'); });
+document.getElementById('nav-tablas').addEventListener('click', function(){ showSec('tablas'); });
+document.getElementById('nav-ejercicios').addEventListener('click', function(){ showSec('ejercicios'); });
+document.getElementById('nav-ia').addEventListener('click', function(){ showSec('ia'); });
+// Home cards
+document.getElementById('btn-ic').addEventListener('click', function(){ showSec('ic'); });
+document.getElementById('btn-ph').addEventListener('click', function(){ showSec('ph'); });
+document.getElementById('btn-teo').addEventListener('click', function(){ showSec('teoria'); });
+document.getElementById('btn-tbl').addEventListener('click', function(){ showSec('tablas'); });
+document.getElementById('btn-ej2').addEventListener('click', function(){ showSec('ejercicios'); });
+document.getElementById('btn-ia2').addEventListener('click', function(){ showSec('ia'); });
+
+// ===== IC TABS =====
+function icTab(id) {
+  ['media','prop','difmed','difprop'].forEach(function(t) {
+    document.getElementById('ic-'+t).style.display = t===id ? 'block' : 'none';
+    document.getElementById('ict-'+t).classList.toggle('on', t===id);
+  });
+}
+document.getElementById('ict-media').addEventListener('click', function(){ icTab('media'); });
+document.getElementById('ict-prop').addEventListener('click', function(){ icTab('prop'); });
+document.getElementById('ict-difmed').addEventListener('click', function(){ icTab('difmed'); });
+document.getElementById('ict-difprop').addEventListener('click', function(){ icTab('difprop'); });
+
+// ===== PH TABS =====
+function phTab(id) {
+  ['media','prop','difmed','difprop'].forEach(function(t) {
+    document.getElementById('ph-'+t).style.display = t===id ? 'block' : 'none';
+    document.getElementById('pht-'+t).classList.toggle('on', t===id);
+  });
+}
+document.getElementById('pht-media').addEventListener('click', function(){ phTab('media'); });
+document.getElementById('pht-prop').addEventListener('click', function(){ phTab('prop'); });
+document.getElementById('pht-difmed').addEventListener('click', function(){ phTab('difmed'); });
+document.getElementById('pht-difprop').addEventListener('click', function(){ phTab('difprop'); });
+
+// ===== TABLE TABS =====
+function tblTab(id) {
+  ['z','t','chi'].forEach(function(t) {
+    document.getElementById('tbl-'+t).style.display = t===id ? 'block' : 'none';
+    document.getElementById('tblt-'+t).classList.toggle('on', t===id);
+  });
+}
+document.getElementById('tblt-z').addEventListener('click', function(){ tblTab('z'); });
+document.getElementById('tblt-t').addEventListener('click', function(){ tblTab('t'); });
+document.getElementById('tblt-chi').addEventListener('click', function(){ tblTab('chi'); });
+
+// ===== THEORY TOGGLE =====
+[1,2,3,4].forEach(function(i) {
+  document.getElementById('thh'+i).addEventListener('click', function() {
+    this.classList.toggle('op');
+    document.getElementById('thb'+i).classList.toggle('op');
+  });
+});
+
+// ===== EXERCISE TOGGLE =====
+[1,2,3].forEach(function(i) {
+  document.getElementById('ejs'+i+'btn').addEventListener('click', function() {
+    var sol = document.getElementById('ejs'+i);
+    sol.classList.toggle('op');
+    this.textContent = sol.classList.contains('op') ? 'Ocultar' : 'Ver solucion';
+  });
+});
+
+// ===== MATH UTILS =====
+function lgam(z) {
+  if (z < 0.5) return Math.log(Math.PI/Math.sin(Math.PI*z)) - lgam(1-z);
+  z -= 1;
+  var x = 0.99999999999980993;
+  var c = [676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
+  for (var i=0; i<8; i++) x += c[i]/(z+i+1);
+  var t = z+7.5;
+  return 0.5*Math.log(2*Math.PI)+(z+0.5)*Math.log(t)-t+Math.log(x);
+}
+function normPDF(x){ return Math.exp(-x*x/2)/Math.sqrt(2*Math.PI); }
+function tPDF(x,df){ var lb=lgam(df/2)+lgam(0.5)-lgam((df+1)/2); return Math.exp(-((df+1)/2)*Math.log(1+x*x/df)-lb)/Math.sqrt(df); }
+
+var TD = {1:[3.078,6.314,12.706,31.821,63.657],2:[1.886,2.920,4.303,6.965,9.925],3:[1.638,2.353,3.182,4.541,5.841],4:[1.533,2.132,2.776,3.747,4.604],5:[1.476,2.015,2.571,3.365,4.032],6:[1.440,1.943,2.447,3.143,3.707],7:[1.415,1.895,2.365,2.998,3.499],8:[1.397,1.860,2.306,2.896,3.355],9:[1.383,1.833,2.262,2.821,3.250],10:[1.372,1.812,2.228,2.764,3.169],11:[1.363,1.796,2.201,2.718,3.106],12:[1.356,1.782,2.179,2.681,3.055],13:[1.350,1.771,2.160,2.650,3.012],14:[1.345,1.761,2.145,2.624,2.977],15:[1.341,1.753,2.131,2.602,2.947],16:[1.337,1.746,2.120,2.583,2.921],17:[1.333,1.740,2.110,2.567,2.898],18:[1.330,1.734,2.101,2.552,2.878],19:[1.328,1.729,2.093,2.539,2.861],20:[1.325,1.725,2.086,2.528,2.845],21:[1.323,1.721,2.080,2.518,2.831],22:[1.321,1.717,2.074,2.508,2.819],23:[1.319,1.714,2.069,2.500,2.807],24:[1.318,1.711,2.064,2.492,2.797],25:[1.316,1.708,2.060,2.485,2.787],26:[1.315,1.706,2.056,2.479,2.779],27:[1.314,1.703,2.052,2.473,2.771],28:[1.313,1.701,2.048,2.467,2.763],29:[1.311,1.699,2.045,2.462,2.756],30:[1.310,1.697,2.042,2.457,2.750],40:[1.303,1.684,2.021,2.423,2.704],50:[1.299,1.676,2.009,2.403,2.678],60:[1.296,1.671,2.000,2.390,2.660],80:[1.292,1.664,1.990,2.374,2.639],100:[1.290,1.660,1.984,2.364,2.626]};
+var TDKS = Object.keys(TD).map(Number).sort(function(a,b){return a-b;});
+var CID = {1:[2.706,3.841,5.024,6.635,7.879],2:[4.605,5.991,7.378,9.210,10.597],3:[6.251,7.815,9.348,11.345,12.838],4:[7.779,9.488,11.143,13.277,14.860],5:[9.236,11.071,12.833,15.086,16.750],6:[10.645,12.592,14.449,16.812,18.548],7:[12.017,14.067,16.013,18.475,20.278],8:[13.362,15.507,17.535,20.090,21.955],9:[14.684,16.919,19.023,21.666,23.589],10:[15.987,18.307,20.483,23.209,25.188],11:[17.275,19.675,21.920,24.725,26.757],12:[18.549,21.026,23.337,26.217,28.300],13:[19.812,22.362,24.736,27.688,29.819],14:[21.064,23.685,26.119,29.141,31.319],15:[22.307,24.996,27.488,30.578,32.801],16:[23.542,26.296,28.845,31.000,34.267],17:[24.769,27.587,30.191,33.409,35.718],18:[25.989,28.869,31.526,34.805,37.156],19:[27.204,30.144,32.852,36.191,38.582],20:[28.412,31.410,34.170,37.566,39.997],25:[34.382,37.652,40.646,44.314,46.928],30:[40.256,43.773,46.979,50.892,53.672],40:[51.805,55.758,59.342,63.691,66.766],50:[63.167,67.505,71.420,76.154,79.490]};
+
+function getTcrit(df,alpha,tail) {
+  var keys = TDKS.filter(function(k){return k<=df;}); var best = keys.length ? Math.max.apply(null,keys) : 1;
+  var row = TD[best] || TD[30];
+  var am = {0.10:0, 0.05:1, 0.025:2, 0.01:3, 0.005:4};
+  if (tail==='two') return row[am[+alpha/2]] || row[2];
+  return row[am[+alpha]] || row[1];
+}
+function getZcrit(alpha,tail) {
+  var m = {0.10:{two:1.6449,right:1.2816,left:1.2816},0.05:{two:1.9600,right:1.6449,left:1.6449},0.01:{two:2.5758,right:2.3263,left:2.3263}};
+  var a = +alpha; var t = tail==='left' ? 'right' : tail;
+  return (m[a]||m[0.05])[t];
+}
+function rrow(l,v){ return '<div class="rr"><span class="rl">'+l+'</span><span class="rv">'+v+'</span></div>'; }
+function icRes(l,u,lbl) {
+  if (l<0&&u<0) return '<div class="vrd r">A&lt;0 y B&lt;0 → '+(lbl||'μ₁ &lt; μ₂')+' (diferencia significativa)</div>';
+  if (l>0&&u>0) return '<div class="vrd r">A&gt;0 y B&gt;0 → '+(lbl||'μ₁ &gt; μ₂')+' (diferencia significativa)</div>';
+  return '<div class="vrd a">A&lt;0 y B&gt;0 → NO hay diferencia significativa</div>';
+}
+function vrd(rej,stat,crit,tp) {
+  if (rej) return '<div class="vrd r">&#x2717; RECHAZA H\u2080 &mdash; '+tp+'c='+stat.toFixed(4)+' &gt; crit='+crit.toFixed(4)+'</div>';
+  return '<div class="vrd a">&#x2713; NO rechaza H\u2080 &mdash; '+tp+'c='+stat.toFixed(4)+'</div>';
+}
+function steps5(s1,s2,s3,s4,s5) {
+  function si(n,t,b){ return '<div class="si"><div class="sn">'+n+'</div><div class="stit">'+t+'</div><div class="sbdy">'+b+'</div></div>'; }
+  return '<div class="stp">'+si(1,'Hipotesis',s1)+si(2,'Distribucion',s2)+si(3,'Nivel y valor critico',s3)+si(4,'Estadistica de prueba',s4)+si(5,'Decision',s5)+'</div>';
+}
+
+// ===== GRAPH =====
+var myChart = null;
+function drawChart(canvasId,stat,crit,tail,dtype,df) {
+  var canvas = document.getElementById(canvasId); if(!canvas) return;
+  var N=260, lim=Math.max(4.2,Math.abs(stat)*1.5+1,Math.abs(crit)*1.5+0.5);
+  var xs=[]; for(var i=0;i<N;i++) xs.push(-lim+i*2*lim/(N-1));
+  var ys=xs.map(function(x){return dtype==='z'?normPDF(x):tPDF(x,df||10);});
+  var rY=xs.map(function(x,i){
+    if(tail==='two') return Math.abs(x)>=Math.abs(crit)?ys[i]:0;
+    if(tail==='right') return x>=crit?ys[i]:0;
+    return x<=-Math.abs(crit)?ys[i]:0;
+  });
+  var pk=Math.max.apply(null,ys)*1.2;
+  var sL=xs.map(function(x){return Math.abs(x-stat)<2*lim/N*2?pk:null;});
+  if(myChart){myChart.destroy();myChart=null;}
+  myChart = new Chart(canvas,{type:'line',data:{labels:xs.map(function(x){return x.toFixed(1);}),datasets:[
+    {data:ys,borderColor:'#6c63ff',borderWidth:2,pointRadius:0,tension:0.35,fill:false},
+    {data:rY,borderColor:'transparent',fill:'origin',backgroundColor:'rgba(255,95,126,0.2)',pointRadius:0,tension:0.35},
+    {data:sL,borderColor:'#22c984',borderWidth:2,borderDash:[5,4],pointRadius:0,tension:0}
+  ]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:300},plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a72',maxTicksLimit:9,font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a72',maxTicksLimit:4,font:{size:10}},min:0}}}});
+}
+function addGraph(outId,stat,crit,tail,dtype,df) {
+  var out=document.getElementById(outId); if(!out) return;
+  var gid=outId+'-gc';
+  var old=document.getElementById(gid); if(old) old.remove();
+  var wrap=document.createElement('div'); wrap.className='gwrap'; wrap.id=gid;
+  wrap.innerHTML='<div class="gtit">GRAFICA DE LA DISTRIBUCION · ZONA DE RECHAZO</div><div class="gcnv"><canvas id="'+gid+'-cv" role="img" aria-label="Grafica distribucion">Grafica.</canvas></div><div class="gleg"><span><i style="background:#6c63ff"></i>'+(dtype==='z'?'Normal z':'t-Student gl='+df)+'</span><span><i style="background:rgba(255,95,126,0.5);height:10px;border-radius:2px"></i>Zona rechazo</span><span><i style="background:#22c984;border-top:2px dashed #22c984"></i>Estadistico '+stat.toFixed(3)+'</span></div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px"><span>Estadistico: <strong style="color:#22c984">'+stat.toFixed(4)+'</strong></span><span>Critico: <strong style="color:#ff5f7e">'+Math.abs(crit).toFixed(4)+'</strong></span></div>';
+  out.appendChild(wrap);
+  setTimeout(function(){drawChart(gid+'-cv',stat,crit,tail,dtype,df);},80);
+}
+
+// ===== IC CALCULATORS =====
+document.getElementById('btn-icm').addEventListener('click', function(){
+  var xb=+document.getElementById('icm-xb').value, sd=+document.getElementById('icm-sd').value;
+  var n=+document.getElementById('icm-n').value, cf=+document.getElementById('icm-cf').value;
+  var sig=document.getElementById('icm-sig').value, alpha=1-cf, se=sd/Math.sqrt(n);
+  var crit,tp; if(sig==='yes'||n>30){tp='z';crit=getZcrit(alpha,'two');}else{tp='t';crit=getTcrit(n-1,alpha,'two');}
+  var l=xb-crit*se, u=xb+crit*se;
+  document.getElementById('icm-out').innerHTML='<div class="res"><div class="rt">IC AL '+(cf*100).toFixed(0)+'%</div>'+rrow('Distribucion',tp==='z'?'Normal z':'t-Student gl='+(n-1))+rrow('SE',se.toFixed(6))+rrow('Valor critico '+tp,crit.toFixed(5))+rrow('Limite A',l.toFixed(4))+rrow('Limite B',u.toFixed(4))+'<div class="vrd ic">IC = [ '+l.toFixed(4)+' , '+u.toFixed(4)+' ]</div></div>';
+});
+document.getElementById('btn-icp').addEventListener('click', function(){
+  var x=+document.getElementById('icp-x').value, n=+document.getElementById('icp-n').value;
+  var cf=+document.getElementById('icp-cf').value, alpha=1-cf;
+  var ph=x/n, qh=1-ph, se=Math.sqrt(ph*qh/n), crit=getZcrit(alpha,'two');
+  var l=ph-crit*se, u=ph+crit*se;
+  document.getElementById('icp-out').innerHTML='<div class="res"><div class="rt">IC AL '+(cf*100).toFixed(0)+'%</div>'+rrow('p&#770;',ph.toFixed(4))+rrow('q&#770;',qh.toFixed(4))+rrow('SE',se.toFixed(6))+rrow('z critico',crit.toFixed(4))+rrow('Limite A',(l*100).toFixed(2)+'% ('+l.toFixed(4)+')') +rrow('Limite B',(u*100).toFixed(2)+'% ('+u.toFixed(4)+')')+'<div class="vrd ic">IC = [ '+(l*100).toFixed(2)+'% , '+(u*100).toFixed(2)+'% ]</div></div>';
+});
+document.getElementById('btn-icdm').addEventListener('click', function(){
+  var x1=+document.getElementById('icdm-x1').value, x2=+document.getElementById('icdm-x2').value;
+  var s1=+document.getElementById('icdm-s1').value, s2=+document.getElementById('icdm-s2').value;
+  var n1=+document.getElementById('icdm-n1').value, n2=+document.getElementById('icdm-n2').value;
+  var cf=+document.getElementById('icdm-cf').value, caso=+document.getElementById('icdm-caso').value;
+  var alpha=1-cf, crit, se, extra='', tp;
+  if(caso<=2){se=Math.sqrt(s1*s1/n1+s2*s2/n2);crit=getZcrit(alpha,'two');tp='z';}
+  else if(caso===3){var sp=Math.sqrt(((n1-1)*s1*s1+(n2-1)*s2*s2)/(n1+n2-2));se=sp*Math.sqrt(1/n1+1/n2);var df=n1+n2-2;crit=getTcrit(df,alpha,'two');tp='t';extra=rrow('Sp',sp.toFixed(4))+rrow('gl',df);}
+  else{se=Math.sqrt(s1*s1/n1+s2*s2/n2);var num=Math.pow(s1*s1/n1+s2*s2/n2,2);var den=Math.pow(s1*s1/n1,2)/(n1-1)+Math.pow(s2*s2/n2,2)/(n2-1);var df2=Math.floor(num/den);crit=getTcrit(df2,alpha,'two');tp='t';extra=rrow('gl Welch',df2);}
+  var d=x1-x2, l=d-crit*se, u=d+crit*se;
+  document.getElementById('icdm-out').innerHTML='<div class="res"><div class="rt">IC AL '+(cf*100).toFixed(0)+'% · CASO '+caso+'</div>'+extra+rrow('x&#773;&#8321;&#8722;x&#773;&#8322;',d.toFixed(4))+rrow('SE',se.toFixed(6))+rrow('Valor critico '+tp,crit.toFixed(4))+rrow('Limite A',l.toFixed(4))+rrow('Limite B',u.toFixed(4))+icRes(l,u,'')+'</div>';
+});
+document.getElementById('btn-icdp').addEventListener('click', function(){
+  var x1=+document.getElementById('icdp-x1').value, n1=+document.getElementById('icdp-n1').value;
+  var x2=+document.getElementById('icdp-x2').value, n2=+document.getElementById('icdp-n2').value;
+  var cf=+document.getElementById('icdp-cf').value, alpha=1-cf;
+  var ph1=x1/n1, ph2=x2/n2, ph=(x1+x2)/(n1+n2), qh=1-ph;
+  var se=Math.sqrt(ph*qh/n1+ph*qh/n2), crit=getZcrit(alpha,'two');
+  var d=ph1-ph2, l=d-crit*se, u=d+crit*se;
+  document.getElementById('icdp-out').innerHTML='<div class="res"><div class="rt">IC AL '+(cf*100).toFixed(0)+'%</div>'+rrow('p&#770;&#8321;',ph1.toFixed(4))+rrow('p&#770;&#8322;',ph2.toFixed(4))+rrow('p&#770; combinada',ph.toFixed(4))+rrow('SE',se.toFixed(6))+rrow('Limite A',l.toFixed(4))+rrow('Limite B',u.toFixed(4))+icRes(l,u,'P1 vs P2')+'</div>';
+});
+
+// ===== PH CALCULATORS =====
+document.getElementById('btn-phm').addEventListener('click', function(){
+  var xb=+document.getElementById('phm-xb').value, mu=+document.getElementById('phm-mu').value;
+  var sd=+document.getElementById('phm-sd').value, n=+document.getElementById('phm-n').value;
+  var al=+document.getElementById('phm-al').value, tail=document.getElementById('phm-tail').value;
+  var sig=document.getElementById('phm-sig').value;
+  var se=sd/Math.sqrt(n), stat=(xb-mu)/se, gl=n-1, crit, tp;
+  if(sig==='yes'||n>30){tp='z';crit=getZcrit(al,tail);}else{tp='t';crit=getTcrit(gl,al,tail);}
+  var rej=tail==='two'?Math.abs(stat)>crit:tail==='right'?stat>crit:stat<-crit;
+  var tl=tail==='two'?'&#8800;'+mu:tail==='right'?'&gt;'+mu:'&lt;'+mu;
+  document.getElementById('phm-out').innerHTML='<div class="res"><div class="rt">SOLUCION 5 PASOS</div>'+steps5('H0: &#956;='+mu+' Ha: &#956; '+tl,tp==='z'?'Normal z':'t-Student gl='+gl,'&#945;='+al+' · '+tp+'crit='+crit.toFixed(4),tp+'c = ('+xb+'-'+mu+')/('+sd+'/&#8730;'+n+') = '+stat.toFixed(4),rej?tp+'c='+stat.toFixed(4)+' &#8594; ZONA RECHAZO':tp+'c='+stat.toFixed(4)+' &#8594; ZONA ACEPTACION')+vrd(rej,stat,crit,tp)+'</div>';
+  addGraph('phm-out',stat,crit,tail,tp,gl);
+});
+document.getElementById('btn-php').addEventListener('click', function(){
+  var x=+document.getElementById('php-x').value, n=+document.getElementById('php-n').value;
+  var p0=+document.getElementById('php-p0').value, al=+document.getElementById('php-al').value;
+  var tail=document.getElementById('php-tail').value;
+  var ph=x/n, qh=1-ph, se=Math.sqrt(ph*qh/n), stat=(ph-p0)/se, crit=getZcrit(al,tail);
+  var rej=tail==='two'?Math.abs(stat)>crit:tail==='right'?stat>crit:stat<-crit;
+  var tl=tail==='two'?'&#8800;'+p0:tail==='right'?'&gt;'+p0:'&lt;'+p0;
+  document.getElementById('php-out').innerHTML='<div class="res"><div class="rt">SOLUCION 5 PASOS</div>'+steps5('H0: P='+p0+' Ha: P '+tl,'Normal z','&#945;='+al+' · zcrit='+crit.toFixed(4),'zc=('+ph.toFixed(4)+'-'+p0+')/'+se.toFixed(4)+'='+stat.toFixed(4),rej?'zc='+stat.toFixed(4)+' &#8594; ZONA RECHAZO':'zc='+stat.toFixed(4)+' &#8594; ZONA ACEPTACION')+vrd(rej,stat,crit,'z')+'</div>';
+  addGraph('php-out',stat,crit,tail,'z',0);
+});
+document.getElementById('btn-phdm').addEventListener('click', function(){
+  var x1=+document.getElementById('phdm-x1').value, x2=+document.getElementById('phdm-x2').value;
+  var s1=+document.getElementById('phdm-s1').value, s2=+document.getElementById('phdm-s2').value;
+  var n1=+document.getElementById('phdm-n1').value, n2=+document.getElementById('phdm-n2').value;
+  var delta=+document.getElementById('phdm-delta').value, al=+document.getElementById('phdm-al').value;
+  var tail=document.getElementById('phdm-tail').value, caso=+document.getElementById('phdm-caso').value;
+  var stat,crit,tp='z',gl=0,extra='';
+  var d=x1-x2;
+  if(caso<=2){var se=Math.sqrt(s1*s1/n1+s2*s2/n2);stat=(d-delta)/se;crit=getZcrit(al,tail);}
+  else if(caso===3){var sp=Math.sqrt(((n1-1)*s1*s1+(n2-1)*s2*s2)/(n1+n2-2));var se=sp*Math.sqrt(1/n1+1/n2);gl=n1+n2-2;tp='t';crit=getTcrit(gl,al,tail);stat=(d-delta)/se;extra='Sp='+sp.toFixed(4)+' gl='+gl+' | ';}
+  else{var se=Math.sqrt(s1*s1/n1+s2*s2/n2);var num=Math.pow(s1*s1/n1+s2*s2/n2,2);var den=Math.pow(s1*s1/n1,2)/(n1-1)+Math.pow(s2*s2/n2,2)/(n2-1);gl=Math.floor(num/den);tp='t';crit=getTcrit(gl,al,tail);stat=(d-delta)/se;extra='gl Welch='+gl+' | ';}
+  var rej=tail==='two'?Math.abs(stat)>crit:tail==='right'?stat>crit:stat<-crit;
+  document.getElementById('phdm-out').innerHTML='<div class="res"><div class="rt">SOLUCION 5 PASOS · CASO '+caso+'</div>'+steps5('H0: &#956;1-&#956;2='+delta,tp==='z'?'Normal z':'t-Student gl='+gl,'&#945;='+al+' · '+tp+'crit='+crit.toFixed(4),extra+tp+'c='+stat.toFixed(4),rej?'ZONA RECHAZO':'ZONA ACEPTACION')+vrd(rej,stat,crit,tp)+'</div>';
+  addGraph('phdm-out',stat,crit,tail,tp,gl);
+});
+document.getElementById('btn-phdp').addEventListener('click', function(){
+  var x1=+document.getElementById('phdp-x1').value, n1=+document.getElementById('phdp-n1').value;
+  var x2=+document.getElementById('phdp-x2').value, n2=+document.getElementById('phdp-n2').value;
+  var delta=+document.getElementById('phdp-delta').value, al=+document.getElementById('phdp-al').value;
+  var tail=document.getElementById('phdp-tail').value;
+  var ph1=x1/n1, ph2=x2/n2, ph=(x1+x2)/(n1+n2), qh=1-ph;
+  var se=Math.sqrt(ph*qh/n1+ph*qh/n2), stat=(ph1-ph2-delta)/se, crit=getZcrit(al,tail);
+  var rej=tail==='two'?Math.abs(stat)>crit:tail==='right'?stat>crit:stat<-crit;
+  document.getElementById('phdp-out').innerHTML='<div class="res"><div class="rt">SOLUCION 5 PASOS</div>'+steps5('H0: P1-P2='+delta,'Normal z','zcrit='+crit.toFixed(4),'zc='+stat.toFixed(4),rej?'ZONA RECHAZO':'ZONA ACEPTACION')+vrd(rej,stat,crit,'z')+'</div>';
+  addGraph('phdp-out',stat,crit,tail,'z',0);
+});
+
+// ===== TABLES =====
+(function(){
+  var th='<thead><tr><th>gl</th><th>0.10</th><th>0.05</th><th>0.025</th><th>0.01</th><th>0.005</th></tr></thead><tbody>';
+  TDKS.forEach(function(k){th+='<tr><td>'+k+'</td>'+TD[k].map(function(v){return '<td>'+v.toFixed(3)+'</td>';}).join('')+'</tr>';});
+  document.getElementById('ttbl').innerHTML=th+'</tbody>';
+  var ch='<thead><tr><th>gl</th><th>0.900</th><th>0.950</th><th>0.975</th><th>0.990</th><th>0.995</th></tr></thead><tbody>';
+  Object.keys(CID).forEach(function(k){ch+='<tr><td>'+k+'</td>'+CID[k].map(function(v){return '<td>'+v.toFixed(3)+'</td>';}).join('')+'</tr>';});
+  document.getElementById('chitbl').innerHTML=ch+'</tbody>';
+})();
+
+// ===== IA MODE =====
+var iaMode='cam', iaImg=null, iaType=null;
+function setMode(m) {
+  iaMode=m;
+  ['cam','img','txt'].forEach(function(x){
+    document.getElementById('ia-'+x).style.display=x===m?'block':'none';
+    var btn=document.getElementById('mb-'+x);
+    btn.className=x===m?'mode-btn on':'mode-btn off';
+  });
+  if(m==='cam'||m==='img'){} else {iaImg=null;iaType=null;}
+}
+document.getElementById('mb-cam').addEventListener('click',function(){setMode('cam');});
+document.getElementById('mb-img').addEventListener('click',function(){setMode('img');});
+document.getElementById('mb-txt').addEventListener('click',function(){setMode('txt');});
+document.getElementById('cam-dz').addEventListener('click',function(){document.getElementById('cam-inp').click();});
+document.getElementById('img-dz').addEventListener('click',function(){document.getElementById('img-inp').click();});
+function loadImg(inp,area){
+  var file=inp.files[0]; if(!file)return;
+  var rd=new FileReader();
+  rd.onload=function(e){
+    var pi=document.getElementById(area+'-pi'), pw=document.getElementById(area+'-pw'), dz=document.getElementById(area+'-dz');
+    pi.src=e.target.result; pw.style.display='block'; dz.style.display='none';
+    iaImg=e.target.result.split(',')[1]; iaType=file.type||'image/jpeg';
+  };
+  rd.readAsDataURL(file);
+}
+document.getElementById('cam-inp').addEventListener('change',function(){loadImg(this,'cam');});
+document.getElementById('img-inp').addEventListener('change',function(){loadImg(this,'img');});
+
+document.getElementById('ia-btn').addEventListener('click',function(){
+  var btn=this, load=document.getElementById('ia-load'), out=document.getElementById('ia-out');
+  var ctx=document.getElementById('ia-ctx').value;
+  var content=[];
+  if(iaMode==='txt'){
+    var txt=document.getElementById('txt-inp').value.trim();
+    if(!txt){alert('Escribe el problema primero.');return;}
+    content=[{type:'text',text:'Resuelve este problema de estadistica:\n\n'+txt}];
+  } else {
+    if(!iaImg){alert('Selecciona o toma una foto primero.');return;}
+    content=[{type:'image',source:{type:'base64',media_type:iaType,data:iaImg}},{type:'text',text:'Resuelve el problema de estadistica en esta imagen. Extrae todos los datos y aplica el procedimiento completo con los 5 pasos.'}];
+  }
+  btn.style.display='none'; load.style.display='block'; out.innerHTML='';
+  var stats=['Leyendo el problema...','Identificando datos...','Calculando paso a paso...','Preparando solucion...'];
+  var si=0, stEl=document.getElementById('ia-stat');
+  var iv=setInterval(function(){si=(si+1)%stats.length;stEl.textContent=stats[si];},2000);
+  var sysprompt='Eres un experto en estadistica inferencial de UDENAR. Resuelve el problema siguiendo exactamente los 5 pasos del metodo (hipotesis, distribucion, valor critico, estadistica de prueba, decision). Responde SOLO en JSON sin texto extra ni backticks:\n{"tipo":"IC o PH","subtipo":"media|proporcion|diferencia_medias|diferencia_proporciones","caso":3,"datos":"descripcion breve de datos extraidos","pasos":[{"n":1,"titulo":"...","contenido":"...","formula":"..."}],"conclusion":"conclusion final","rechaza":true}';
+  fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sysprompt,messages:[{role:'user',content:content}]})})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    clearInterval(iv); load.style.display='none'; btn.style.display='flex';
+    var raw=(data.content||[]).map(function(b){return b.text||'';}).join('').trim();
+    var sol;
+    try{sol=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){out.innerHTML='<div class="res"><div class="rt">SOLUCION</div><div style="font-size:11px;color:var(--text2);white-space:pre-wrap;line-height:1.7">'+raw+'</div></div>';return;}
+    var html='<div style="background:var(--bg3);border-radius:12px;padding:14px">';
+    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">';
+    html+='<div style="background:var(--adim);border:1px solid var(--acc);border-radius:8px;padding:5px 10px;font-size:11px;color:var(--acc2);font-weight:700">'+(sol.tipo==='PH'?'Prueba Hipotesis':'Intervalo Confianza')+'</div>';
+    html+='<div style="font-size:12px;color:var(--text2)">'+(sol.subtipo||'')+(sol.caso?' · Caso '+sol.caso:'')+'</div></div>';
+    if(sol.datos){html+='<div style="background:var(--bg4);border-radius:8px;padding:10px;margin-bottom:12px;border-left:3px solid var(--amb)"><div style="font-size:10px;color:var(--amb);font-weight:700;margin-bottom:4px">DATOS EXTRAIDOS</div><div style="font-size:11px;color:var(--text2)">'+sol.datos+'</div></div>';}
+    if(sol.pasos&&sol.pasos.length){
+      sol.pasos.forEach(function(p){
+        html+='<div class="ia-step"><div class="ia-st">Paso '+p.n+': '+(p.titulo||'')+'</div><div class="ia-sb">'+(p.contenido||'')+'</div>'+(p.formula?'<div class="ia-fml">'+(p.formula)+'</div>':'')+'</div>';
+      });
+    }
+    if(sol.conclusion){html+='<div class="'+(sol.rechaza===true?'ia-ko':'ia-ok')+'">'+(sol.rechaza===true?'&#x2717; ':'&#x2713; ')+sol.conclusion+'</div>';}
+    // graph
+    var gid='ia-gc-'+Date.now();
+    html+='<div class="gwrap" id="'+gid+'"><div class="gtit">GRAFICA DE LA DISTRIBUCION</div><div class="gcnv"><canvas id="'+gid+'-cv" role="img" aria-label="Grafica">.</canvas></div></div>';
+    html+='</div>';
+    out.innerHTML=html;
+    // extract stat and crit from text
+    var allTxt=JSON.stringify(sol);
+    var mS=allTxt.match(/[tz]c[^=:]*[=:]\s*(-?[\d.]+)/i);
+    var mC=allTxt.match(/crit[^=]*=\s*([\d.]+)/i)||allTxt.match(/valor.critico[^=]*=\s*([\d.]+)/i);
+    var mD=allTxt.match(/gl[^=\d]*=\s*(\d+)/i);
+    var st=mS?parseFloat(mS[1]):0;
+    var cr=mC?parseFloat(mC[1]):1.96;
+    var df=mD?parseInt(mD[1]):10;
+    var dtype=allTxt.match(/t.student|distribuci.n\s*t\b/i)&&df?'t':'z';
+    var tl=allTxt.match(/cola.derecha/i)?'right':allTxt.match(/cola.izquierda/i)?'left':'two';
+    setTimeout(function(){drawChart(gid+'-cv',st,cr,tl,dtype,df);},100);
+  })
+  .catch(function(err){
+    clearInterval(iv); load.style.display='none'; btn.style.display='flex';
+    out.innerHTML='<div style="background:var(--rdim);border:1px solid rgba(255,95,126,0.3);border-radius:10px;padding:14px"><div style="font-size:12px;color:var(--red);font-weight:700;margin-bottom:4px">Error</div><div style="font-size:11px;color:var(--text2)">'+err.message+'</div><div style="font-size:10px;color:var(--text3);margin-top:6px">Verifica tu conexion a internet.</div></div>';
+  });
+});
+
+// ===== PWA =====
+var dp=null;
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;document.getElementById('inst-banner').style.display='flex';});
+function installApp(){if(dp){dp.prompt();dp.userChoice.then(function(){dp=null;document.getElementById('inst-banner').style.display='none';});}}
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+</script>
+</body>
+</html>
