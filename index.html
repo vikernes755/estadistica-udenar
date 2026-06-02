@@ -545,8 +545,8 @@ function getZcrit(alpha,tail) {
 }
 function rrow(l,v){ return '<div class="rr"><span class="rl">'+l+'</span><span class="rv">'+v+'</span></div>'; }
 function icRes(l,u,lbl) {
-  if (l<0&&u<0) return '<div class="vrd r">A&lt;0 y B&lt;0 → '+(lbl||'μ₁ &lt; μ₂')+' (diferencia significativa)</div>';
-  if (l>0&&u>0) return '<div class="vrd r">A&gt;0 y B&gt;0 → '+(lbl||'μ₁ &gt; μ₂')+' (diferencia significativa)</div>';
+  if (l<0&&u<0) return '<div class="vrd r">A&lt;0 y B&lt;0 → '+(lbl||'&#956;&#8321; &lt; &#956;&#8322;')+' (diferencia significativa)</div>';
+  if (l>0&&u>0) return '<div class="vrd r">A&gt;0 y B&gt;0 → '+(lbl||'&#956;&#8321; &gt; &#956;&#8322;')+' (diferencia significativa)</div>';
   return '<div class="vrd a">A&lt;0 y B&gt;0 → NO hay diferencia significativa</div>';
 }
 function vrd(rej,stat,crit,tp) {
@@ -648,30 +648,30 @@ document.getElementById('btn-icm').addEventListener('click', function(){
   var n=+document.getElementById('icm-n').value, cf=+document.getElementById('icm-cf').value;
   var sig=document.getElementById('icm-sig').value, alpha=1-cf, se=sd/Math.sqrt(n);
   var crit,tp,gl=n-1,caso;
-  if(sig==='yes'){tp='z';crit=getZcrit(alpha,'two');caso='Caso 1: σ conocida (z)';}
-  else if(n>30){tp='z';crit=getZcrit(alpha,'two');caso='Caso 2: σ desconocida, n>30 (z)';}
-  else{tp='t';crit=getTcrit(gl,alpha,'two');caso='Caso 3: σ desconocida, n≤30 (t, gl='+gl+')';}
+  if(sig==='yes'){tp='z';crit=getZcrit(alpha,'two');caso='Caso 1: &#963; conocida (z)';}
+  else if(n>30){tp='z';crit=getZcrit(alpha,'two');caso='Caso 2: &#963; desconocida, n>30 (z)';}
+  else{tp='t';crit=getTcrit(gl,alpha,'two');caso='Caso 3: &#963; desconocida, n&#8804;30 (t, gl='+gl+')';}
   var l=xb-crit*se, u=xb+crit*se;
   var html='<div class="res">';
   html+='<div class="rt">SOLUCION PASO A PASO — IC AL '+(cf*100).toFixed(0)+'%</div>';
   html+=paso(1,'Identificacion del caso',caso,'');
   html+=paso(2,'Formula a utilizar',
-    tp==='z'?'IC = x̅ ± z·(s/√n)  con z₀.₀' + (alpha*100).toFixed(0)/2+'  n='+(n>30?'>30':'&le;30'):
-              'IC = x̅ ± t·(s/√n)  con t₂.₀' + alpha/2 +',gl='+gl,
-    tp==='z'?'x̅ ± z · (σ o s / √n)':'x̅ ± t · (s / √n)');
+    tp==='z'?'IC = x&#772; &#177; z·(s/&#8730;n)  con z&#8320;.&#8320;' + (alpha*100).toFixed(0)/2+'  n='+(n>30?'>30':'&le;30'):
+              'IC = x&#772; &#177; t·(s/&#8730;n)  con t&#8322;.&#8320;' + alpha/2 +',gl='+gl,
+    tp==='z'?'x&#772; &#177; z · (&#963; o s / &#8730;n)':'x&#772; &#177; t · (s / &#8730;n)');
   html+=paso(3,'Error estandar (SE)',
-    'SE = s/√n = '+sd+'/√'+n+' = '+sd+'/'+Math.sqrt(n).toFixed(4)+' = '+se.toFixed(6),
-    'SE = s / √n');
+    'SE = s/&#8730;n = '+sd+'/&#8730;'+n+' = '+sd+'/'+Math.sqrt(n).toFixed(4)+' = '+se.toFixed(6),
+    'SE = s / &#8730;n');
   html+=paso(4,'Valor critico ('+tp+')',
-    tp==='t'?'Con gl='+gl+' y α/2='+(alpha/2)+': '+tp+'crit = ±'+crit.toFixed(5):
-             'Con confianza '+(cf*100).toFixed(0)+'%: zcrit = ±'+crit.toFixed(5),
-    tp==='t'?'t₂,gl de la tabla t-Student':'z₂ de la tabla normal');
+    tp==='t'?'Con gl='+gl+' y &#945;/2='+(alpha/2)+': '+tp+'crit = &#177;'+crit.toFixed(5):
+             'Con confianza '+(cf*100).toFixed(0)+'%: zcrit = &#177;'+crit.toFixed(5),
+    tp==='t'?'t&#8322;,gl de la tabla t-Student':'z&#8322; de la tabla normal');
   html+=paso(5,'Calculo del intervalo',
-    'A = x̅ − '+tp+'crit·SE = '+xb+' − '+crit.toFixed(4)+'·'+se.toFixed(4)+' = '+l.toFixed(4)+'<br>'+
-    'B = x̅ + '+tp+'crit·SE = '+xb+' + '+crit.toFixed(4)+'·'+se.toFixed(4)+' = '+u.toFixed(4),
-    'x̅ ± '+tp+'crit · SE');
+    'A = x&#772; − '+tp+'crit·SE = '+xb+' − '+crit.toFixed(4)+'·'+se.toFixed(4)+' = '+l.toFixed(4)+'<br>'+
+    'B = x&#772; + '+tp+'crit·SE = '+xb+' + '+crit.toFixed(4)+'·'+se.toFixed(4)+' = '+u.toFixed(4),
+    'x&#772; &#177; '+tp+'crit · SE');
   html+='<div class="vrd ic" style="margin-top:8px">IC al '+(cf*100).toFixed(0)+'% = [ '+l.toFixed(4)+' , '+u.toFixed(4)+' ]</div>';
-  html+='<div style="font-size:11px;color:var(--text2);margin-top:6px;padding:8px;background:var(--bg4);border-radius:6px">Con '+(cf*100).toFixed(0)+'% de confianza, la media poblacional μ se encuentra entre '+l.toFixed(4)+' y '+u.toFixed(4)+'.</div>';
+  html+='<div style="font-size:11px;color:var(--text2);margin-top:6px;padding:8px;background:var(--bg4);border-radius:6px">Con '+(cf*100).toFixed(0)+'% de confianza, la media poblacional &#956; se encuentra entre '+l.toFixed(4)+' y '+u.toFixed(4)+'.</div>';
   html+='</div>';
   document.getElementById('icm-out').innerHTML=html;
   addGraphIC('icm-out', xb, l, u, crit, tp, gl);
@@ -684,21 +684,21 @@ document.getElementById('btn-icp').addEventListener('click', function(){
   var html='<div class="res">';
   html+='<div class="rt">SOLUCION PASO A PASO — IC AL '+(cf*100).toFixed(0)+'%</div>';
   html+=paso(1,'Formula',
-    'p̂ ± z · √(p̂·q̂/n) &nbsp; donde q̂ = 1 − p̂',
-    'p̂ ± z · √(p̂·q̂ / n)');
+    'p&#770; &#177; z · &#8730;(p&#770;·q&#770;/n) &nbsp; donde q&#770; = 1 − p&#770;',
+    'p&#770; &#177; z · &#8730;(p&#770;·q&#770; / n)');
   html+=paso(2,'Proporciones muestrales',
-    'p̂ = x/n = '+x+'/'+n+' = '+ph.toFixed(4)+'<br>q̂ = 1 − '+ph.toFixed(4)+' = '+qh.toFixed(4),
-    'p̂ = x/n &nbsp; q̂ = 1 − p̂');
+    'p&#770; = x/n = '+x+'/'+n+' = '+ph.toFixed(4)+'<br>q&#770; = 1 − '+ph.toFixed(4)+' = '+qh.toFixed(4),
+    'p&#770; = x/n &nbsp; q&#770; = 1 − p&#770;');
   html+=paso(3,'Error estandar',
-    'SE = √(p̂·q̂/n) = √('+ph.toFixed(4)+'·'+qh.toFixed(4)+'/'+n+') = √('+((ph*qh/n)).toFixed(6)+') = '+se.toFixed(6),
-    'SE = √(p̂ · q̂ / n)');
+    'SE = &#8730;(p&#770;·q&#770;/n) = &#8730;('+ph.toFixed(4)+'·'+qh.toFixed(4)+'/'+n+') = &#8730;('+((ph*qh/n)).toFixed(6)+') = '+se.toFixed(6),
+    'SE = &#8730;(p&#770; · q&#770; / n)');
   html+=paso(4,'Valor critico z',
-    'Con confianza '+(cf*100).toFixed(0)+'%: zcrit = ±'+crit.toFixed(4),
+    'Con confianza '+(cf*100).toFixed(0)+'%: zcrit = &#177;'+crit.toFixed(4),
     'z de tabla normal estandar');
   html+=paso(5,'Calculo del intervalo',
-    'p̂₁ = '+ph.toFixed(4)+' − '+crit.toFixed(4)+'·'+se.toFixed(6)+' = '+l.toFixed(4)+' = '+(l*100).toFixed(2)+'%<br>'+
-    'p̂₂ = '+ph.toFixed(4)+' + '+crit.toFixed(4)+'·'+se.toFixed(6)+' = '+u.toFixed(4)+' = '+(u*100).toFixed(2)+'%',
-    'p̂ ± zcrit · SE');
+    'p&#770;&#8321; = '+ph.toFixed(4)+' − '+crit.toFixed(4)+'·'+se.toFixed(6)+' = '+l.toFixed(4)+' = '+(l*100).toFixed(2)+'%<br>'+
+    'p&#770;&#8322; = '+ph.toFixed(4)+' + '+crit.toFixed(4)+'·'+se.toFixed(6)+' = '+u.toFixed(4)+' = '+(u*100).toFixed(2)+'%',
+    'p&#770; &#177; zcrit · SE');
   html+='<div class="vrd ic" style="margin-top:8px">IC al '+(cf*100).toFixed(0)+'% = [ '+(l*100).toFixed(2)+'% , '+(u*100).toFixed(2)+'% ]</div>';
   html+='<div style="font-size:11px;color:var(--text2);margin-top:6px;padding:8px;background:var(--bg4);border-radius:6px">Con '+(cf*100).toFixed(0)+'% de confianza, la proporcion poblacional P esta entre '+(l*100).toFixed(2)+'% y '+(u*100).toFixed(2)+'%.</div>';
   html+='</div>';
@@ -723,33 +723,33 @@ document.getElementById('btn-icdm').addEventListener('click', function(){
     df=Math.floor(num/den); crit=getTcrit(df,alpha,'two'); tp='t';
   }
   var d=x1-x2, l=d-crit*se, u=d+crit*se;
-  var casoLabels=['','Caso 1: σ₁,σ₂ conocidas (z)','Caso 2: σ desc., n₁+n₂>30 (z)','Caso 3: n≤30, varianzas iguales (t, Sp)','Caso 4: n≤30, varianzas distintas (t, Welch)'];
+  var casoLabels=['','Caso 1: &#963;&#8321;,&#963;&#8322; conocidas (z)','Caso 2: &#963; desc., n&#8321;+n&#8322;>30 (z)','Caso 3: n&#8804;30, varianzas iguales (t, Sp)','Caso 4: n&#8804;30, varianzas distintas (t, Welch)'];
   var html='<div class="res">';
   html+='<div class="rt">SOLUCION PASO A PASO — IC AL '+(cf*100).toFixed(0)+'% (CASO '+caso+')</div>';
-  html+=paso(1,'Caso aplicado',casoLabels[caso],caso<=2?'(x̅₁−x̅₂) ± z·√(σ²/n₁+σ²/n₂)':caso===3?'(x̅₁−x̅₂) ± t·Sp·√(1/n₁+1/n₂)':'(x̅₁−x̅₂) ± t·√(s²₁/n₁+s²₂/n₂)');
+  html+=paso(1,'Caso aplicado',casoLabels[caso],caso<=2?'(x&#772;&#8321;−x&#772;&#8322;) &#177; z·&#8730;(&#963;²/n&#8321;+&#963;²/n&#8322;)':caso===3?'(x&#772;&#8321;−x&#772;&#8322;) &#177; t·Sp·&#8730;(1/n&#8321;+1/n&#8322;)':'(x&#772;&#8321;−x&#772;&#8322;) &#177; t·&#8730;(s²&#8321;/n&#8321;+s²&#8322;/n&#8322;)');
   html+=paso(2,'Diferencia de medias muestrales',
-    'x̅₁ − x̅₂ = '+x1+' − '+x2+' = '+d.toFixed(4),'x̅₁ − x̅₂');
+    'x&#772;&#8321; − x&#772;&#8322; = '+x1+' − '+x2+' = '+d.toFixed(4),'x&#772;&#8321; − x&#772;&#8322;');
   if(sp!==null){
     html+=paso(3,'Desv. estandar agrupada (Sp)',
-      'Sp = √[((n₁−1)·s²₁ + (n₂−1)·s²₂) / (n₁+n₂−2)]<br>'+
-      'Sp = √[('+(n1-1)+'·'+s1+'² + '+(n2-1)+'·'+s2+'²) / '+(n1+n2-2)+']<br>'+
-      'Sp = √['+(((n1-1)*s1*s1+(n2-1)*s2*s2)/(n1+n2-2)).toFixed(6)+'] = '+sp.toFixed(4)+
-      '<br>SE = Sp·√(1/n₁+1/n₂) = '+sp.toFixed(4)+'·'+Math.sqrt(1/n1+1/n2).toFixed(4)+' = '+se.toFixed(6)+
-      '<br>gl = n₁+n₂−2 = '+n1+'+'+n2+'−2 = '+df,
-      'Sp = √[((n₁-1)s²₁+(n₂-1)s²₂)/(n₁+n₂-2)]');
+      'Sp = &#8730;[((n&#8321;−1)·s²&#8321; + (n&#8322;−1)·s²&#8322;) / (n&#8321;+n&#8322;−2)]<br>'+
+      'Sp = &#8730;[('+(n1-1)+'·'+s1+'² + '+(n2-1)+'·'+s2+'²) / '+(n1+n2-2)+']<br>'+
+      'Sp = &#8730;['+(((n1-1)*s1*s1+(n2-1)*s2*s2)/(n1+n2-2)).toFixed(6)+'] = '+sp.toFixed(4)+
+      '<br>SE = Sp·&#8730;(1/n&#8321;+1/n&#8322;) = '+sp.toFixed(4)+'·'+Math.sqrt(1/n1+1/n2).toFixed(4)+' = '+se.toFixed(6)+
+      '<br>gl = n&#8321;+n&#8322;−2 = '+n1+'+'+n2+'−2 = '+df,
+      'Sp = &#8730;[((n&#8321;-1)s²&#8321;+(n&#8322;-1)s²&#8322;)/(n&#8321;+n&#8322;-2)]');
   } else {
     html+=paso(3,'Error estandar (SE)',
-      caso===4?'SE = √(s²₁/n₁+s²₂/n₂) = √('+s1+'²/'+n1+'+'+s2+'²/'+n2+') = '+se.toFixed(6)+'<br>gl Welch = '+df:
-      'SE = √(s²₁/n₁+s²₂/n₂) = '+se.toFixed(6),
-      'SE = √(s²₁/n₁ + s²₂/n₂)');
+      caso===4?'SE = &#8730;(s²&#8321;/n&#8321;+s²&#8322;/n&#8322;) = &#8730;('+s1+'²/'+n1+'+'+s2+'²/'+n2+') = '+se.toFixed(6)+'<br>gl Welch = '+df:
+      'SE = &#8730;(s²&#8321;/n&#8321;+s²&#8322;/n&#8322;) = '+se.toFixed(6),
+      'SE = &#8730;(s²&#8321;/n&#8321; + s²&#8322;/n&#8322;)');
   }
   html+=paso(4,'Valor critico '+tp,
-    tp==='z'?'Con confianza '+(cf*100).toFixed(0)+'%: zcrit = ±'+crit.toFixed(4):'Con gl='+df+' y α/2='+(alpha/2)+': tcrit = ±'+crit.toFixed(4),
-    tp==='t'?'t₂,gl de tabla t-Student':'z de tabla normal');
+    tp==='z'?'Con confianza '+(cf*100).toFixed(0)+'%: zcrit = &#177;'+crit.toFixed(4):'Con gl='+df+' y &#945;/2='+(alpha/2)+': tcrit = &#177;'+crit.toFixed(4),
+    tp==='t'?'t&#8322;,gl de tabla t-Student':'z de tabla normal');
   html+=paso(5,'Calculo del intervalo',
-    'A = (x̅₁−x̅₂) − '+tp+'crit·SE = '+d.toFixed(4)+' − '+crit.toFixed(4)+'·'+se.toFixed(4)+' = '+l.toFixed(4)+'<br>'+
-    'B = (x̅₁−x̅₂) + '+tp+'crit·SE = '+d.toFixed(4)+' + '+crit.toFixed(4)+'·'+se.toFixed(4)+' = '+u.toFixed(4),
-    '(x̅₁−x̅₂) ± '+tp+'crit · SE');
+    'A = (x&#772;&#8321;−x&#772;&#8322;) − '+tp+'crit·SE = '+d.toFixed(4)+' − '+crit.toFixed(4)+'·'+se.toFixed(4)+' = '+l.toFixed(4)+'<br>'+
+    'B = (x&#772;&#8321;−x&#772;&#8322;) + '+tp+'crit·SE = '+d.toFixed(4)+' + '+crit.toFixed(4)+'·'+se.toFixed(4)+' = '+u.toFixed(4),
+    '(x&#772;&#8321;−x&#772;&#8322;) &#177; '+tp+'crit · SE');
   html+=icRes(l,u,'');
   html+='</div>';
   document.getElementById('icdm-out').innerHTML=html;
@@ -765,25 +765,25 @@ document.getElementById('btn-icdp').addEventListener('click', function(){
   var html='<div class="res">';
   html+='<div class="rt">SOLUCION PASO A PASO — IC AL '+(cf*100).toFixed(0)+'%</div>';
   html+=paso(1,'Formula',
-    '(p̂₁−p̂₂) ± z·√(p̂·q̂/n₁ + p̂·q̂/n₂)',
-    'p̂ = (x₁+x₂)/(n₁+n₂)');
+    '(p&#770;&#8321;−p&#770;&#8322;) &#177; z·&#8730;(p&#770;·q&#770;/n&#8321; + p&#770;·q&#770;/n&#8322;)',
+    'p&#770; = (x&#8321;+x&#8322;)/(n&#8321;+n&#8322;)');
   html+=paso(2,'Proporciones muestrales',
-    'p̂₁ = x₁/n₁ = '+x1+'/'+n1+' = '+ph1.toFixed(4)+'<br>'+
-    'p̂₂ = x₂/n₂ = '+x2+'/'+n2+' = '+ph2.toFixed(4)+'<br>'+
-    'p̂ combinada = ('+x1+'+'+x2+')/('+n1+'+'+n2+') = '+ph.toFixed(4)+'<br>'+
-    'q̂ = 1−'+ph.toFixed(4)+' = '+qh.toFixed(4),
-    'p̂ = (x₁+x₂)/(n₁+n₂) &nbsp; q̂ = 1−p̂');
+    'p&#770;&#8321; = x&#8321;/n&#8321; = '+x1+'/'+n1+' = '+ph1.toFixed(4)+'<br>'+
+    'p&#770;&#8322; = x&#8322;/n&#8322; = '+x2+'/'+n2+' = '+ph2.toFixed(4)+'<br>'+
+    'p&#770; combinada = ('+x1+'+'+x2+')/('+n1+'+'+n2+') = '+ph.toFixed(4)+'<br>'+
+    'q&#770; = 1−'+ph.toFixed(4)+' = '+qh.toFixed(4),
+    'p&#770; = (x&#8321;+x&#8322;)/(n&#8321;+n&#8322;) &nbsp; q&#770; = 1−p&#770;');
   html+=paso(3,'Error estandar (SE)',
-    'SE = √(p̂·q̂/n₁ + p̂·q̂/n₂)<br>'+
-    'SE = √('+ph.toFixed(4)+'·'+qh.toFixed(4)+'/'+n1+' + '+ph.toFixed(4)+'·'+qh.toFixed(4)+'/'+n2+')<br>'+
-    'SE = √('+(ph*qh/n1).toFixed(6)+' + '+(ph*qh/n2).toFixed(6)+') = '+se.toFixed(6),
-    'SE = √(p̂q̂/n₁ + p̂q̂/n₂)');
+    'SE = &#8730;(p&#770;·q&#770;/n&#8321; + p&#770;·q&#770;/n&#8322;)<br>'+
+    'SE = &#8730;('+ph.toFixed(4)+'·'+qh.toFixed(4)+'/'+n1+' + '+ph.toFixed(4)+'·'+qh.toFixed(4)+'/'+n2+')<br>'+
+    'SE = &#8730;('+(ph*qh/n1).toFixed(6)+' + '+(ph*qh/n2).toFixed(6)+') = '+se.toFixed(6),
+    'SE = &#8730;(p&#770;q&#770;/n&#8321; + p&#770;q&#770;/n&#8322;)');
   html+=paso(4,'Valor critico z',
-    'Con confianza '+(cf*100).toFixed(0)+'%: zcrit = ±'+crit.toFixed(4),'z de tabla normal');
+    'Con confianza '+(cf*100).toFixed(0)+'%: zcrit = &#177;'+crit.toFixed(4),'z de tabla normal');
   html+=paso(5,'Calculo del intervalo',
-    'A = (p̂₁−p̂₂) − zcrit·SE = '+d.toFixed(4)+' − '+crit.toFixed(4)+'·'+se.toFixed(6)+' = '+l.toFixed(4)+'<br>'+
-    'B = (p̂₁−p̂₂) + zcrit·SE = '+d.toFixed(4)+' + '+crit.toFixed(4)+'·'+se.toFixed(6)+' = '+u.toFixed(4),
-    '(p̂₁−p̂₂) ± zcrit · SE');
+    'A = (p&#770;&#8321;−p&#770;&#8322;) − zcrit·SE = '+d.toFixed(4)+' − '+crit.toFixed(4)+'·'+se.toFixed(6)+' = '+l.toFixed(4)+'<br>'+
+    'B = (p&#770;&#8321;−p&#770;&#8322;) + zcrit·SE = '+d.toFixed(4)+' + '+crit.toFixed(4)+'·'+se.toFixed(6)+' = '+u.toFixed(4),
+    '(p&#770;&#8321;−p&#770;&#8322;) &#177; zcrit · SE');
   html+=icRes(l,u,'P1 vs P2');
   html+='</div>';
   document.getElementById('icdp-out').innerHTML=html;
