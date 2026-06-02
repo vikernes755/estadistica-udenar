@@ -590,32 +590,170 @@ function addGraph(outId,stat,crit,tail,dtype,df) {
 }
 
 // ===== IC CALCULATORS =====
+
+// ===== IC STEP HELPERS =====
+function paso(n,titulo,contenido,formula){
+  return '<div class="si"><div class="sn">'+n+'</div><div class="stit">'+titulo+'</div><div class="sbdy">'+contenido+'</div>'+(formula?'<div style="background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;font-family:var(--fnm);font-size:11px;color:var(--cyn);margin-top:4px">'+formula+'</div>':'')+'</div>';
+}
+
+function addGraphIC(outId, center, lower, upper, crit, dtype, df){
+  var out=document.getElementById(outId); if(!out) return;
+  var gid=outId+'-igc';
+  var old=document.getElementById(gid); if(old) old.remove();
+  var wrap=document.createElement('div'); wrap.className='gwrap'; wrap.id=gid;
+  var cvId=gid+'-cv';
+  wrap.innerHTML='<div class="gtit">GRAFICA — DISTRIBUCION CON INTERVALO DE CONFIANZA</div><div class="gcnv"><canvas id="'+cvId+'" role="img" aria-label="Grafica IC"></canvas></div>'+
+    '<div class="gleg"><span><i style="background:#6c63ff"></i>Distribucion '+(dtype==='z'?'Normal (z)':'t-Student gl='+df)+'</span>'+
+    '<span><i style="background:rgba(34,201,132,0.5);height:10px;border-radius:2px"></i>Zona de confianza '+(dtype==='z'?'(z)':'(t)')+'</span>'+
+    '<span><i style="background:rgba(255,95,126,0.5);height:10px;border-radius:2px"></i>Zona de rechazo</span></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px">'+
+    '<span>A = <strong style="color:#22c984">'+lower.toFixed(4)+'</strong></span>'+
+    '<span>Centro = <strong style="color:#6c63ff">'+center.toFixed(4)+'</strong></span>'+
+    '<span>B = <strong style="color:#22c984">'+upper.toFixed(4)+'</strong></span></div>';
+  out.appendChild(wrap);
+  setTimeout(function(){
+    var canvas=document.getElementById(cvId); if(!canvas) return;
+    var N=260;
+    var lim=Math.max(4.2, Math.abs(crit)*1.8+0.8);
+    var xs=[]; for(var i=0;i<N;i++) xs.push(-lim+i*2*lim/(N-1));
+    var ys=xs.map(function(x){return dtype==='z'?normPDF(x):tPDF(x,df||10);});
+    // confidence zone (between -crit and +crit) = green fill
+    var confY=xs.map(function(x,i){return Math.abs(x)<=crit?ys[i]:0;});
+    // rejection zones = red fill
+    var rejY=xs.map(function(x,i){return Math.abs(x)>crit?ys[i]:0;});
+    // center line
+    var pk=Math.max.apply(null,ys)*1.2;
+    var ctrL=xs.map(function(x){return Math.abs(x)<2*lim/N*2?pk:null;});
+    if(myChart){myChart.destroy();myChart=null;}
+    myChart=new Chart(canvas,{type:'line',
+      data:{labels:xs.map(function(x){return x.toFixed(1);}),datasets:[
+        {data:ys,borderColor:'#6c63ff',borderWidth:2,pointRadius:0,tension:0.35,fill:false},
+        {data:confY,borderColor:'transparent',fill:'origin',backgroundColor:'rgba(34,201,132,0.18)',pointRadius:0,tension:0.35},
+        {data:rejY,borderColor:'transparent',fill:'origin',backgroundColor:'rgba(255,95,126,0.2)',pointRadius:0,tension:0.35},
+        {data:ctrL,borderColor:'rgba(108,99,255,0.7)',borderWidth:1.5,borderDash:[4,3],pointRadius:0,tension:0}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,animation:{duration:300},
+        plugins:{legend:{display:false},tooltip:{enabled:false}},
+        scales:{
+          x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a72',maxTicksLimit:9,font:{size:10}}},
+          y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a72',maxTicksLimit:4,font:{size:10}},min:0}
+        }
+      }
+    });
+  },80);
+}
+
 document.getElementById('btn-icm').addEventListener('click', function(){
   var xb=+document.getElementById('icm-xb').value, sd=+document.getElementById('icm-sd').value;
   var n=+document.getElementById('icm-n').value, cf=+document.getElementById('icm-cf').value;
   var sig=document.getElementById('icm-sig').value, alpha=1-cf, se=sd/Math.sqrt(n);
-  var crit,tp; if(sig==='yes'||n>30){tp='z';crit=getZcrit(alpha,'two');}else{tp='t';crit=getTcrit(n-1,alpha,'two');}
+  var crit,tp,gl=n-1,caso;
+  if(sig==='yes'){tp='z';crit=getZcrit(alpha,'two');caso='Caso 1: σ conocida (z)';}
+  else if(n>30){tp='z';crit=getZcrit(alpha,'two');caso='Caso 2: σ desconocida, n>30 (z)';}
+  else{tp='t';crit=getTcrit(gl,alpha,'two');caso='Caso 3: σ desconocida, n≤30 (t, gl='+gl+')';}
   var l=xb-crit*se, u=xb+crit*se;
-  document.getElementById('icm-out').innerHTML='<div class="res"><div class="rt">IC AL '+(cf*100).toFixed(0)+'%</div>'+rrow('Distribucion',tp==='z'?'Normal z':'t-Student gl='+(n-1))+rrow('SE',se.toFixed(6))+rrow('Valor critico '+tp,crit.toFixed(5))+rrow('Limite A',l.toFixed(4))+rrow('Limite B',u.toFixed(4))+'<div class="vrd ic">IC = [ '+l.toFixed(4)+' , '+u.toFixed(4)+' ]</div></div>';
+  var html='<div class="res">';
+  html+='<div class="rt">SOLUCION PASO A PASO — IC AL '+(cf*100).toFixed(0)+'%</div>';
+  html+=paso(1,'Identificacion del caso',caso,'');
+  html+=paso(2,'Formula a utilizar',
+    tp==='z'?'IC = x̅ ± z·(s/√n)  con z₀.₀' + (alpha*100).toFixed(0)/2+'  n='+(n>30?'>30':'&le;30'):
+              'IC = x̅ ± t·(s/√n)  con t₂.₀' + alpha/2 +',gl='+gl,
+    tp==='z'?'x̅ ± z · (σ o s / √n)':'x̅ ± t · (s / √n)');
+  html+=paso(3,'Error estandar (SE)',
+    'SE = s/√n = '+sd+'/√'+n+' = '+sd+'/'+Math.sqrt(n).toFixed(4)+' = '+se.toFixed(6),
+    'SE = s / √n');
+  html+=paso(4,'Valor critico ('+tp+')',
+    tp==='t'?'Con gl='+gl+' y α/2='+(alpha/2)+': '+tp+'crit = ±'+crit.toFixed(5):
+             'Con confianza '+(cf*100).toFixed(0)+'%: zcrit = ±'+crit.toFixed(5),
+    tp==='t'?'t₂,gl de la tabla t-Student':'z₂ de la tabla normal');
+  html+=paso(5,'Calculo del intervalo',
+    'A = x̅ − '+tp+'crit·SE = '+xb+' − '+crit.toFixed(4)+'·'+se.toFixed(4)+' = '+l.toFixed(4)+'<br>'+
+    'B = x̅ + '+tp+'crit·SE = '+xb+' + '+crit.toFixed(4)+'·'+se.toFixed(4)+' = '+u.toFixed(4),
+    'x̅ ± '+tp+'crit · SE');
+  html+='<div class="vrd ic" style="margin-top:8px">IC al '+(cf*100).toFixed(0)+'% = [ '+l.toFixed(4)+' , '+u.toFixed(4)+' ]</div>';
+  html+='<div style="font-size:11px;color:var(--text2);margin-top:6px;padding:8px;background:var(--bg4);border-radius:6px">Con '+(cf*100).toFixed(0)+'% de confianza, la media poblacional μ se encuentra entre '+l.toFixed(4)+' y '+u.toFixed(4)+'.</div>';
+  html+='</div>';
+  document.getElementById('icm-out').innerHTML=html;
+  addGraphIC('icm-out', xb, l, u, crit, tp, gl);
 });
 document.getElementById('btn-icp').addEventListener('click', function(){
   var x=+document.getElementById('icp-x').value, n=+document.getElementById('icp-n').value;
   var cf=+document.getElementById('icp-cf').value, alpha=1-cf;
   var ph=x/n, qh=1-ph, se=Math.sqrt(ph*qh/n), crit=getZcrit(alpha,'two');
   var l=ph-crit*se, u=ph+crit*se;
-  document.getElementById('icp-out').innerHTML='<div class="res"><div class="rt">IC AL '+(cf*100).toFixed(0)+'%</div>'+rrow('p&#770;',ph.toFixed(4))+rrow('q&#770;',qh.toFixed(4))+rrow('SE',se.toFixed(6))+rrow('z critico',crit.toFixed(4))+rrow('Limite A',(l*100).toFixed(2)+'% ('+l.toFixed(4)+')') +rrow('Limite B',(u*100).toFixed(2)+'% ('+u.toFixed(4)+')')+'<div class="vrd ic">IC = [ '+(l*100).toFixed(2)+'% , '+(u*100).toFixed(2)+'% ]</div></div>';
+  var html='<div class="res">';
+  html+='<div class="rt">SOLUCION PASO A PASO — IC AL '+(cf*100).toFixed(0)+'%</div>';
+  html+=paso(1,'Formula',
+    'p̂ ± z · √(p̂·q̂/n) &nbsp; donde q̂ = 1 − p̂',
+    'p̂ ± z · √(p̂·q̂ / n)');
+  html+=paso(2,'Proporciones muestrales',
+    'p̂ = x/n = '+x+'/'+n+' = '+ph.toFixed(4)+'<br>q̂ = 1 − '+ph.toFixed(4)+' = '+qh.toFixed(4),
+    'p̂ = x/n &nbsp; q̂ = 1 − p̂');
+  html+=paso(3,'Error estandar',
+    'SE = √(p̂·q̂/n) = √('+ph.toFixed(4)+'·'+qh.toFixed(4)+'/'+n+') = √('+((ph*qh/n)).toFixed(6)+') = '+se.toFixed(6),
+    'SE = √(p̂ · q̂ / n)');
+  html+=paso(4,'Valor critico z',
+    'Con confianza '+(cf*100).toFixed(0)+'%: zcrit = ±'+crit.toFixed(4),
+    'z de tabla normal estandar');
+  html+=paso(5,'Calculo del intervalo',
+    'p̂₁ = '+ph.toFixed(4)+' − '+crit.toFixed(4)+'·'+se.toFixed(6)+' = '+l.toFixed(4)+' = '+(l*100).toFixed(2)+'%<br>'+
+    'p̂₂ = '+ph.toFixed(4)+' + '+crit.toFixed(4)+'·'+se.toFixed(6)+' = '+u.toFixed(4)+' = '+(u*100).toFixed(2)+'%',
+    'p̂ ± zcrit · SE');
+  html+='<div class="vrd ic" style="margin-top:8px">IC al '+(cf*100).toFixed(0)+'% = [ '+(l*100).toFixed(2)+'% , '+(u*100).toFixed(2)+'% ]</div>';
+  html+='<div style="font-size:11px;color:var(--text2);margin-top:6px;padding:8px;background:var(--bg4);border-radius:6px">Con '+(cf*100).toFixed(0)+'% de confianza, la proporcion poblacional P esta entre '+(l*100).toFixed(2)+'% y '+(u*100).toFixed(2)+'%.</div>';
+  html+='</div>';
+  document.getElementById('icp-out').innerHTML=html;
+  addGraphIC('icp-out', ph, l, u, crit, 'z', 0);
 });
 document.getElementById('btn-icdm').addEventListener('click', function(){
   var x1=+document.getElementById('icdm-x1').value, x2=+document.getElementById('icdm-x2').value;
   var s1=+document.getElementById('icdm-s1').value, s2=+document.getElementById('icdm-s2').value;
   var n1=+document.getElementById('icdm-n1').value, n2=+document.getElementById('icdm-n2').value;
   var cf=+document.getElementById('icdm-cf').value, caso=+document.getElementById('icdm-caso').value;
-  var alpha=1-cf, crit, se, extra='', tp;
-  if(caso<=2){se=Math.sqrt(s1*s1/n1+s2*s2/n2);crit=getZcrit(alpha,'two');tp='z';}
-  else if(caso===3){var sp=Math.sqrt(((n1-1)*s1*s1+(n2-1)*s2*s2)/(n1+n2-2));se=sp*Math.sqrt(1/n1+1/n2);var df=n1+n2-2;crit=getTcrit(df,alpha,'two');tp='t';extra=rrow('Sp',sp.toFixed(4))+rrow('gl',df);}
-  else{se=Math.sqrt(s1*s1/n1+s2*s2/n2);var num=Math.pow(s1*s1/n1+s2*s2/n2,2);var den=Math.pow(s1*s1/n1,2)/(n1-1)+Math.pow(s2*s2/n2,2)/(n2-1);var df2=Math.floor(num/den);crit=getTcrit(df2,alpha,'two');tp='t';extra=rrow('gl Welch',df2);}
+  var alpha=1-cf, crit, se, sp=null, df=null, tp;
+  if(caso<=2){
+    se=Math.sqrt(s1*s1/n1+s2*s2/n2); crit=getZcrit(alpha,'two'); tp='z';
+  } else if(caso===3){
+    sp=Math.sqrt(((n1-1)*s1*s1+(n2-1)*s2*s2)/(n1+n2-2));
+    se=sp*Math.sqrt(1/n1+1/n2); df=n1+n2-2; crit=getTcrit(df,alpha,'two'); tp='t';
+  } else {
+    se=Math.sqrt(s1*s1/n1+s2*s2/n2);
+    var num=Math.pow(s1*s1/n1+s2*s2/n2,2);
+    var den=Math.pow(s1*s1/n1,2)/(n1-1)+Math.pow(s2*s2/n2,2)/(n2-1);
+    df=Math.floor(num/den); crit=getTcrit(df,alpha,'two'); tp='t';
+  }
   var d=x1-x2, l=d-crit*se, u=d+crit*se;
-  document.getElementById('icdm-out').innerHTML='<div class="res"><div class="rt">IC AL '+(cf*100).toFixed(0)+'% · CASO '+caso+'</div>'+extra+rrow('x&#773;&#8321;&#8722;x&#773;&#8322;',d.toFixed(4))+rrow('SE',se.toFixed(6))+rrow('Valor critico '+tp,crit.toFixed(4))+rrow('Limite A',l.toFixed(4))+rrow('Limite B',u.toFixed(4))+icRes(l,u,'')+'</div>';
+  var casoLabels=['','Caso 1: σ₁,σ₂ conocidas (z)','Caso 2: σ desc., n₁+n₂>30 (z)','Caso 3: n≤30, varianzas iguales (t, Sp)','Caso 4: n≤30, varianzas distintas (t, Welch)'];
+  var html='<div class="res">';
+  html+='<div class="rt">SOLUCION PASO A PASO — IC AL '+(cf*100).toFixed(0)+'% (CASO '+caso+')</div>';
+  html+=paso(1,'Caso aplicado',casoLabels[caso],caso<=2?'(x̅₁−x̅₂) ± z·√(σ²/n₁+σ²/n₂)':caso===3?'(x̅₁−x̅₂) ± t·Sp·√(1/n₁+1/n₂)':'(x̅₁−x̅₂) ± t·√(s²₁/n₁+s²₂/n₂)');
+  html+=paso(2,'Diferencia de medias muestrales',
+    'x̅₁ − x̅₂ = '+x1+' − '+x2+' = '+d.toFixed(4),'x̅₁ − x̅₂');
+  if(sp!==null){
+    html+=paso(3,'Desv. estandar agrupada (Sp)',
+      'Sp = √[((n₁−1)·s²₁ + (n₂−1)·s²₂) / (n₁+n₂−2)]<br>'+
+      'Sp = √[('+(n1-1)+'·'+s1+'² + '+(n2-1)+'·'+s2+'²) / '+(n1+n2-2)+']<br>'+
+      'Sp = √['+(((n1-1)*s1*s1+(n2-1)*s2*s2)/(n1+n2-2)).toFixed(6)+'] = '+sp.toFixed(4)+
+      '<br>SE = Sp·√(1/n₁+1/n₂) = '+sp.toFixed(4)+'·'+Math.sqrt(1/n1+1/n2).toFixed(4)+' = '+se.toFixed(6)+
+      '<br>gl = n₁+n₂−2 = '+n1+'+'+n2+'−2 = '+df,
+      'Sp = √[((n₁-1)s²₁+(n₂-1)s²₂)/(n₁+n₂-2)]');
+  } else {
+    html+=paso(3,'Error estandar (SE)',
+      caso===4?'SE = √(s²₁/n₁+s²₂/n₂) = √('+s1+'²/'+n1+'+'+s2+'²/'+n2+') = '+se.toFixed(6)+'<br>gl Welch = '+df:
+      'SE = √(s²₁/n₁+s²₂/n₂) = '+se.toFixed(6),
+      'SE = √(s²₁/n₁ + s²₂/n₂)');
+  }
+  html+=paso(4,'Valor critico '+tp,
+    tp==='z'?'Con confianza '+(cf*100).toFixed(0)+'%: zcrit = ±'+crit.toFixed(4):'Con gl='+df+' y α/2='+(alpha/2)+': tcrit = ±'+crit.toFixed(4),
+    tp==='t'?'t₂,gl de tabla t-Student':'z de tabla normal');
+  html+=paso(5,'Calculo del intervalo',
+    'A = (x̅₁−x̅₂) − '+tp+'crit·SE = '+d.toFixed(4)+' − '+crit.toFixed(4)+'·'+se.toFixed(4)+' = '+l.toFixed(4)+'<br>'+
+    'B = (x̅₁−x̅₂) + '+tp+'crit·SE = '+d.toFixed(4)+' + '+crit.toFixed(4)+'·'+se.toFixed(4)+' = '+u.toFixed(4),
+    '(x̅₁−x̅₂) ± '+tp+'crit · SE');
+  html+=icRes(l,u,'');
+  html+='</div>';
+  document.getElementById('icdm-out').innerHTML=html;
+  addGraphIC('icdm-out', d, l, u, crit, tp, df||0);
 });
 document.getElementById('btn-icdp').addEventListener('click', function(){
   var x1=+document.getElementById('icdp-x1').value, n1=+document.getElementById('icdp-n1').value;
@@ -624,7 +762,32 @@ document.getElementById('btn-icdp').addEventListener('click', function(){
   var ph1=x1/n1, ph2=x2/n2, ph=(x1+x2)/(n1+n2), qh=1-ph;
   var se=Math.sqrt(ph*qh/n1+ph*qh/n2), crit=getZcrit(alpha,'two');
   var d=ph1-ph2, l=d-crit*se, u=d+crit*se;
-  document.getElementById('icdp-out').innerHTML='<div class="res"><div class="rt">IC AL '+(cf*100).toFixed(0)+'%</div>'+rrow('p&#770;&#8321;',ph1.toFixed(4))+rrow('p&#770;&#8322;',ph2.toFixed(4))+rrow('p&#770; combinada',ph.toFixed(4))+rrow('SE',se.toFixed(6))+rrow('Limite A',l.toFixed(4))+rrow('Limite B',u.toFixed(4))+icRes(l,u,'P1 vs P2')+'</div>';
+  var html='<div class="res">';
+  html+='<div class="rt">SOLUCION PASO A PASO — IC AL '+(cf*100).toFixed(0)+'%</div>';
+  html+=paso(1,'Formula',
+    '(p̂₁−p̂₂) ± z·√(p̂·q̂/n₁ + p̂·q̂/n₂)',
+    'p̂ = (x₁+x₂)/(n₁+n₂)');
+  html+=paso(2,'Proporciones muestrales',
+    'p̂₁ = x₁/n₁ = '+x1+'/'+n1+' = '+ph1.toFixed(4)+'<br>'+
+    'p̂₂ = x₂/n₂ = '+x2+'/'+n2+' = '+ph2.toFixed(4)+'<br>'+
+    'p̂ combinada = ('+x1+'+'+x2+')/('+n1+'+'+n2+') = '+ph.toFixed(4)+'<br>'+
+    'q̂ = 1−'+ph.toFixed(4)+' = '+qh.toFixed(4),
+    'p̂ = (x₁+x₂)/(n₁+n₂) &nbsp; q̂ = 1−p̂');
+  html+=paso(3,'Error estandar (SE)',
+    'SE = √(p̂·q̂/n₁ + p̂·q̂/n₂)<br>'+
+    'SE = √('+ph.toFixed(4)+'·'+qh.toFixed(4)+'/'+n1+' + '+ph.toFixed(4)+'·'+qh.toFixed(4)+'/'+n2+')<br>'+
+    'SE = √('+(ph*qh/n1).toFixed(6)+' + '+(ph*qh/n2).toFixed(6)+') = '+se.toFixed(6),
+    'SE = √(p̂q̂/n₁ + p̂q̂/n₂)');
+  html+=paso(4,'Valor critico z',
+    'Con confianza '+(cf*100).toFixed(0)+'%: zcrit = ±'+crit.toFixed(4),'z de tabla normal');
+  html+=paso(5,'Calculo del intervalo',
+    'A = (p̂₁−p̂₂) − zcrit·SE = '+d.toFixed(4)+' − '+crit.toFixed(4)+'·'+se.toFixed(6)+' = '+l.toFixed(4)+'<br>'+
+    'B = (p̂₁−p̂₂) + zcrit·SE = '+d.toFixed(4)+' + '+crit.toFixed(4)+'·'+se.toFixed(6)+' = '+u.toFixed(4),
+    '(p̂₁−p̂₂) ± zcrit · SE');
+  html+=icRes(l,u,'P1 vs P2');
+  html+='</div>';
+  document.getElementById('icdp-out').innerHTML=html;
+  addGraphIC('icdp-out', d, l, u, crit, 'z', 0);
 });
 
 // ===== PH CALCULATORS =====
@@ -717,62 +880,79 @@ document.getElementById('cam-inp').addEventListener('change',function(){loadImg(
 document.getElementById('img-inp').addEventListener('change',function(){loadImg(this,'img');});
 
 document.getElementById('ia-btn').addEventListener('click',function(){
-  var btn=this, load=document.getElementById('ia-load'), out=document.getElementById('ia-out');
+  var out=document.getElementById('ia-out');
   var ctx=document.getElementById('ia-ctx').value;
-  var content=[];
-  if(iaMode==='txt'){
-    var txt=document.getElementById('txt-inp').value.trim();
-    if(!txt){alert('Escribe el problema primero.');return;}
-    content=[{type:'text',text:'Resuelve este problema de estadistica:\n\n'+txt}];
+  var ctxMap={
+    'general':'Identifica si es IC o Prueba de Hipotesis y resuelvelo completo.',
+    'ic-media':'Es un IC para la media. Usa los casos del profesor (caso 1,2,3 segun sigma y n).',
+    'ic-prop':'Es un IC para proporciones. Formula: p_hat +/- z*sqrt(p_hat*q_hat/n).',
+    'ic-difmed':'Es un IC para diferencia de medias. Aplica el caso correcto (1,2,3 o 4).',
+    'ph-media':'Es una Prueba de Hipotesis para la media. Sigue los 5 pasos exactos.',
+    'ph-prop':'Es una Prueba de Hipotesis para proporciones. Usa distribucion z.',
+    'ph-difmed':'Es una Prueba de Hipotesis para diferencia de medias. Aplica el caso correcto.'
+  };
+  var hint = ctxMap[ctx] || ctxMap['general'];
+  var instrucciones = 'Soy estudiante de Licenciatura en Informatica en UDENAR.\n' + hint + '\n\nResuelve el siguiente problema usando los 5 pasos del metodo estadistico:\nPaso 1: Plantear hipotesis (H0 y Ha) o identificar datos para IC\nPaso 2: Determinar distribucion (z, t, Chi2)\nPaso 3: Nivel de significancia, valor critico y grafica\nPaso 4: Calcular estadistica de prueba o IC con formulas y numeros\nPaso 5: Conclusion e interpretacion\n\nPROBLEMA:\n';
+
+  if(iaMode === 'txt'){
+    var txt = document.getElementById('txt-inp').value.trim();
+    if(!txt){ alert('Escribe el problema primero.'); return; }
+    var fullPrompt = instrucciones + txt;
+    copyAndOpen(fullPrompt, out);
   } else {
-    if(!iaImg){alert('Selecciona o toma una foto primero.');return;}
-    content=[{type:'image',source:{type:'base64',media_type:iaType,data:iaImg}},{type:'text',text:'Resuelve el problema de estadistica en esta imagen. Extrae todos los datos y aplica el procedimiento completo con los 5 pasos.'}];
+    if(!iaImg){ alert('Selecciona o toma una foto primero.'); return; }
+    var imgInstructions = instrucciones + '[VER IMAGEN ADJUNTA]\n\nExtrae todos los datos numericos de la imagen y resuelve el problema.';
+    out.innerHTML = buildImgResult(imgInstructions);
   }
-  btn.style.display='none'; load.style.display='block'; out.innerHTML='';
-  var stats=['Leyendo el problema...','Identificando datos...','Calculando paso a paso...','Preparando solucion...'];
-  var si=0, stEl=document.getElementById('ia-stat');
-  var iv=setInterval(function(){si=(si+1)%stats.length;stEl.textContent=stats[si];},2000);
-  var sysprompt='Eres un experto en estadistica inferencial de UDENAR. Resuelve el problema siguiendo exactamente los 5 pasos del metodo (hipotesis, distribucion, valor critico, estadistica de prueba, decision). Responde SOLO en JSON sin texto extra ni backticks:\n{"tipo":"IC o PH","subtipo":"media|proporcion|diferencia_medias|diferencia_proporciones","caso":3,"datos":"descripcion breve de datos extraidos","pasos":[{"n":1,"titulo":"...","contenido":"...","formula":"..."}],"conclusion":"conclusion final","rechaza":true}';
-  fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sysprompt,messages:[{role:'user',content:content}]})})
-  .then(function(r){return r.json();})
-  .then(function(data){
-    clearInterval(iv); load.style.display='none'; btn.style.display='flex';
-    var raw=(data.content||[]).map(function(b){return b.text||'';}).join('').trim();
-    var sol;
-    try{sol=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){out.innerHTML='<div class="res"><div class="rt">SOLUCION</div><div style="font-size:11px;color:var(--text2);white-space:pre-wrap;line-height:1.7">'+raw+'</div></div>';return;}
-    var html='<div style="background:var(--bg3);border-radius:12px;padding:14px">';
-    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">';
-    html+='<div style="background:var(--adim);border:1px solid var(--acc);border-radius:8px;padding:5px 10px;font-size:11px;color:var(--acc2);font-weight:700">'+(sol.tipo==='PH'?'Prueba Hipotesis':'Intervalo Confianza')+'</div>';
-    html+='<div style="font-size:12px;color:var(--text2)">'+(sol.subtipo||'')+(sol.caso?' · Caso '+sol.caso:'')+'</div></div>';
-    if(sol.datos){html+='<div style="background:var(--bg4);border-radius:8px;padding:10px;margin-bottom:12px;border-left:3px solid var(--amb)"><div style="font-size:10px;color:var(--amb);font-weight:700;margin-bottom:4px">DATOS EXTRAIDOS</div><div style="font-size:11px;color:var(--text2)">'+sol.datos+'</div></div>';}
-    if(sol.pasos&&sol.pasos.length){
-      sol.pasos.forEach(function(p){
-        html+='<div class="ia-step"><div class="ia-st">Paso '+p.n+': '+(p.titulo||'')+'</div><div class="ia-sb">'+(p.contenido||'')+'</div>'+(p.formula?'<div class="ia-fml">'+(p.formula)+'</div>':'')+'</div>';
-      });
-    }
-    if(sol.conclusion){html+='<div class="'+(sol.rechaza===true?'ia-ko':'ia-ok')+'">'+(sol.rechaza===true?'&#x2717; ':'&#x2713; ')+sol.conclusion+'</div>';}
-    // graph
-    var gid='ia-gc-'+Date.now();
-    html+='<div class="gwrap" id="'+gid+'"><div class="gtit">GRAFICA DE LA DISTRIBUCION</div><div class="gcnv"><canvas id="'+gid+'-cv" role="img" aria-label="Grafica">.</canvas></div></div>';
-    html+='</div>';
-    out.innerHTML=html;
-    // extract stat and crit from text
-    var allTxt=JSON.stringify(sol);
-    var mS=allTxt.match(/[tz]c[^=:]*[=:]\s*(-?[\d.]+)/i);
-    var mC=allTxt.match(/crit[^=]*=\s*([\d.]+)/i)||allTxt.match(/valor.critico[^=]*=\s*([\d.]+)/i);
-    var mD=allTxt.match(/gl[^=\d]*=\s*(\d+)/i);
-    var st=mS?parseFloat(mS[1]):0;
-    var cr=mC?parseFloat(mC[1]):1.96;
-    var df=mD?parseInt(mD[1]):10;
-    var dtype=allTxt.match(/t.student|distribuci.n\s*t\b/i)&&df?'t':'z';
-    var tl=allTxt.match(/cola.derecha/i)?'right':allTxt.match(/cola.izquierda/i)?'left':'two';
-    setTimeout(function(){drawChart(gid+'-cv',st,cr,tl,dtype,df);},100);
-  })
-  .catch(function(err){
-    clearInterval(iv); load.style.display='none'; btn.style.display='flex';
-    out.innerHTML='<div style="background:var(--rdim);border:1px solid rgba(255,95,126,0.3);border-radius:10px;padding:14px"><div style="font-size:12px;color:var(--red);font-weight:700;margin-bottom:4px">Error</div><div style="font-size:11px;color:var(--text2)">'+err.message+'</div><div style="font-size:10px;color:var(--text3);margin-top:6px">Verifica tu conexion a internet.</div></div>';
-  });
 });
+
+function copyAndOpen(txt, out){
+  var opened = false;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){
+      out.innerHTML = buildCopiedResult();
+    }).catch(function(){
+      out.innerHTML = buildManualResult(txt);
+    });
+  } else {
+    out.innerHTML = buildManualResult(txt);
+  }
+}
+
+function buildCopiedResult(){
+  return '<div style="background:var(--gdim);border:1px solid rgba(34,201,132,0.3);border-radius:10px;padding:14px;margin-top:10px">'
+    +'<div style="font-size:13px;color:var(--grn);font-weight:700;margin-bottom:8px">Copiado al portapapeles</div>'
+    +'<div style="font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:12px">El problema ya esta copiado con todas las instrucciones estadisticas. Solo pega en Claude.ai o ChatGPT y te da la solucion completa con los 5 pasos.</div>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button onclick="window.open('https://claude.ai','_blank')" style="flex:1;padding:11px;background:var(--acc);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer">Abrir Claude.ai</button>'
+    +'<button onclick="window.open('https://chatgpt.com','_blank')" style="flex:1;padding:11px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:12px;font-weight:700;cursor:pointer">Abrir ChatGPT</button>'
+    +'</div></div>';
+}
+
+function buildManualResult(txt){
+  return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:10px">'
+    +'<div style="font-size:11px;color:var(--acc2);font-weight:700;margin-bottom:6px">Copia y pega este texto en Claude.ai:</div>'
+    +'<textarea readonly id="copy-ta" style="width:100%;height:100px;padding:8px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:10px;font-family:var(--fnm);resize:none;margin-bottom:8px">'+txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button onclick="var t=document.getElementById('copy-ta');t.select();document.execCommand('copy');this.textContent='Copiado!';" style="flex:1;padding:9px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:11px;font-weight:700;cursor:pointer">Copiar texto</button>'
+    +'<button onclick="window.open('https://claude.ai','_blank')" style="flex:1;padding:9px;background:var(--acc);border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:700;cursor:pointer">Claude.ai</button>'
+    +'</div></div>';
+}
+
+function buildImgResult(instructions){
+  return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:10px">'
+    +'<div style="font-size:12px;color:var(--acc2);font-weight:700;margin-bottom:10px">Resolucion por imagen</div>'
+    +'<div style="font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:12px">'
+    +'<strong style="color:var(--grn)">Opcion 1 — Claude.ai (mejor)</strong><br>'
+    +'1. Abre claude.ai<br>2. Adjunta la foto<br>3. Escribe: "Resuelve este problema con los 5 pasos del metodo estadistico de UDENAR"<br><br>'
+    +'<strong style="color:var(--amb)">Opcion 2 — ChatGPT</strong><br>'
+    +'1. Abre chatgpt.com<br>2. Adjunta la foto y pide la solucion paso a paso'
+    +'</div>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button onclick="window.open('https://claude.ai','_blank')" style="flex:1;padding:11px;background:var(--acc);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer">Ir a Claude.ai</button>'
+    +'<button onclick="window.open('https://chatgpt.com','_blank')" style="flex:1;padding:11px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:12px;font-weight:700;cursor:pointer">Ir a ChatGPT</button>'
+    +'</div></div>';
+};
 
 // ===== PWA =====
 var dp=null;
